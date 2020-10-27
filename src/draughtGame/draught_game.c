@@ -58,7 +58,7 @@ void InGame(SDL_Surface *screen)
         fprintf(stderr, "Unable to load black_pawn.png : %s\n", IMG_GetError());
         exit(EXIT_FAILURE);
     }
-    if((select_pawn = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 128, 128, 128, 0)) == NULL)
+    if((select_pawn = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL)
     {
         fprintf(stderr, "Unable to create RGB surface select_pawn : %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
@@ -72,9 +72,13 @@ void InGame(SDL_Surface *screen)
     position_selector.x = 0;
     position_selector.y = 0;
 
+    SDL_Rect save_pos;
+
     displayBoard(screen, img_board);
     updateMapPawn(screen, black_pawn, white_pawn, my_manBoard);
     SDL_Flip(screen);
+
+    int             isSelect = FALSE;
 
     int             continuer = TRUE;
     SDL_Event       event;
@@ -103,6 +107,22 @@ void InGame(SDL_Surface *screen)
                         break;
                     case SDLK_RIGHT:
                         displaySelector(&position_selector, RIGHT);
+                        break;
+                    case SDLK_SPACE:
+                        if(!isSelect)
+                        {
+                            save_pos = position_selector;
+                            SDL_FreeSurface(select_pawn);
+                            select_pawn = selectPawn(my_manBoard, &position_selector, isSelect);
+                            isSelect = TRUE;
+                        }
+                        else
+                        {
+                            SDL_FreeSurface(select_pawn);
+                            select_pawn = selectPawn(my_manBoard, &position_selector, isSelect);
+                            position_selector = save_pos;
+                            isSelect = FALSE;
+                        }
                         break;
                     default:
                         break;
@@ -145,23 +165,25 @@ void initialiseBoard(manage_board *manBoardI)
     //initialise the double input table with size
     manBoardI->height = NB_BLOCK_HEIGHT;
     manBoardI->width = NB_BLOCK_WIDTH;
-    manBoardI->board = malloc(manBoardI->height * sizeof(int**));
+    manBoardI->boardSDL = malloc(manBoardI->height * sizeof(int**));
+    manBoardI->board_blackCase = malloc(manBoardI->height*sizeof(int**));
     
-    if(manBoardI->board != NULL)
+    if((manBoardI->boardSDL != NULL) && (manBoardI->board_blackCase != NULL))
     {
         for(int i = 0; i < manBoardI->height; i++)
         {
-            manBoardI->board[i] = malloc(manBoardI->width * sizeof(int*));
-            if(manBoardI->board[i] == NULL)
+            manBoardI->boardSDL[i] = malloc(manBoardI->width * sizeof(int*));
+            manBoardI->board_blackCase[i] = malloc(manBoardI->height*sizeof(int*));
+            if((manBoardI->boardSDL[i] == NULL) || (manBoardI->board_blackCase[i] == NULL))
             {
-                fprintf(stderr, "initialiseBoard() : malloc on board[%d] failure\n", i);
+                fprintf(stderr, "initialiseBoard() : malloc on boardSDL[%d] failure\n", i);
                 exit(EXIT_FAILURE);
             }
         }
     }
     else
     {
-        fprintf(stderr, "initialiseBoard() : malloc on board failure");
+        fprintf(stderr, "initialiseBoard() : malloc on boardSDL failure");
         exit(EXIT_FAILURE);
     }
 
@@ -176,22 +198,22 @@ void initialiseBoard(manage_board *manBoardI)
                 {
                     if(j%2 == 1) //colonne 1, 3, 5, 7, 9
                     {
-                        manBoardI->board[i][j] = BLACK;
+                        manBoardI->boardSDL[i][j] = BLACK;
                     }
                     else
                     {
-                        manBoardI->board[i][j] = EMPTY;
+                        manBoardI->boardSDL[i][j] = EMPTY;
                     }
                 }
                 else //line 1, 3
                 {
                     if(j%2 == 0) // colonne 0, 2, 4, 6, 8
                     {
-                        manBoardI->board[i][j] = BLACK;
+                        manBoardI->boardSDL[i][j] = BLACK;
                     }
                     else
                     {
-                        manBoardI->board[i][j] = EMPTY;
+                        manBoardI->boardSDL[i][j] = EMPTY;
                     }
                 }
             }
@@ -201,31 +223,111 @@ void initialiseBoard(manage_board *manBoardI)
                 {
                     if(j%2 == 1) // colonne 1, 3, 5, 7, 9
                     {
-                        manBoardI->board[i][j] = WHITE;
+                        manBoardI->boardSDL[i][j] = WHITE;
                     }
                     else
                     {
-                        manBoardI->board[i][j] = EMPTY;
+                        manBoardI->boardSDL[i][j] = EMPTY;
                     } 
                 }
                 else // line 7, 9
                 {
                     if(j%2 == 0) // colonne 0, 2, 4, 6, 8
                     {
-                        manBoardI->board[i][j] = WHITE;
+                        manBoardI->boardSDL[i][j] = WHITE;
                     }
                     else
                     {
-                        manBoardI->board[i][j] = EMPTY;
+                        manBoardI->boardSDL[i][j] = EMPTY;
                     }
                 }
             }
             else // line 4 et 5
             {
-                manBoardI->board[i][j] = EMPTY;
+                manBoardI->boardSDL[i][j] = EMPTY;
             }
         }
     }
+
+    int count = 1;
+    for(int i = 0; i < manBoardI->width; i++)
+    {
+        for(int j = 0; j < manBoardI->height; j++)
+        {
+            if(i%2 == 0)
+            {
+                if(j%2 == 1)
+                {
+                    manBoardI->board_blackCase[i][j] = count;
+                    count++;
+                }
+                else
+                {
+                    manBoardI->board_blackCase[i][j] = 0;
+                }
+                
+            }
+            else
+            {
+                if(j%2 == 0)
+                {
+                    manBoardI->board_blackCase[i][j] = count;
+                    count++;
+                }
+                else
+                {
+                    manBoardI->board_blackCase[i][j] = 0;
+                }
+                
+            }
+            
+        }
+    } 
+}
+
+/************************************************************************************/
+/* function : selectPawn                                                            */
+/************************************************************************************/
+/* Input : manage_board *, SDL_Rect *                                               */
+/* Output : SDL_Surface *                                                           */
+/************************************************************************************/
+/* purpose : the selector become a pawn if on it then don't                         */
+/*                                                                                  */
+/************************************************************************************/
+SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, int bool)
+{
+    if((manBord == NULL) || posi == NULL)
+    {
+        fprintf(stderr, "selectPawn() : no parameters available");
+        exit(EXIT_FAILURE);
+    }
+    
+    SDL_Surface *newTexture = NULL;
+    if((newTexture = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL)
+    {
+        fprintf(stderr, "Unable to create RGB surface select_pawn : %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+
+    if(!bool)
+    {
+        if(manBord->boardSDL[posi->y][posi->x] == BLACK)
+        {
+            SDL_FreeSurface(newTexture);
+            if((newTexture = IMG_Load("../files/textures/black_pawn.png")) == NULL)
+            {
+                fprintf(stderr, "Unable to load black_pawn.png : %s\n", IMG_GetError());
+                exit(EXIT_FAILURE);
+            }
+            manBord->boardSDL[posi->y][posi->x] = EMPTY;
+        }
+    }
+    else
+    {
+        manBord->boardSDL[posi->y][posi->x] = BLACK;   
+    }
+    
+    return newTexture;
 }
 
 /************************************************************************************/
@@ -277,7 +379,7 @@ void displaySelector(SDL_Rect *pos, int direction)
 /* Input : SDL_Surface * x2                                                         */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : this function display the board and all of the variable                */
+/* purpose : this function display the boardSDL and all of the variable             */
 /* we need in it                                                                    */
 /************************************************************************************/
 void displayBoard(SDL_Surface *screen, SDL_Surface *img_board)
@@ -292,7 +394,7 @@ void displayBoard(SDL_Surface *screen, SDL_Surface *img_board)
     position_board.x = 0;
     position_board.y = 0;
 
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
+    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 255));
     SDL_BlitSurface(img_board, NULL, screen, &position_board);
 }
 
@@ -321,7 +423,7 @@ void updateMapPawn(SDL_Surface *screen, SDL_Surface *black_p, SDL_Surface *white
         {
             position.x = i * BLOCK_SIZE;
             position.y = j * BLOCK_SIZE;
-            switch(man_mapPawn->board[j][i])
+            switch(man_mapPawn->boardSDL[j][i])
             {
                 case BLACK:
                     SDL_BlitSurface(black_p, NULL, screen, &position);
@@ -340,7 +442,7 @@ void updateMapPawn(SDL_Surface *screen, SDL_Surface *black_p, SDL_Surface *white
 /* Input : manage_board *                                                           */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : this function destroy the board and all of the variable                */
+/* purpose : this function destroy the boardSDL and all of the variable             */
 /* we need in it                                                                    */
 /************************************************************************************/
 void destroyBoard(manage_board *manBoardD)
@@ -353,9 +455,11 @@ void destroyBoard(manage_board *manBoardD)
 
     for(int i = 0; i < manBoardD->height; i++)
     {
-        free(manBoardD->board[i]);
+        free(manBoardD->boardSDL[i]);
+        free(manBoardD->board_blackCase[i]);
     }
 
-    free(manBoardD->board);
+    free(manBoardD->boardSDL);
+    free(manBoardD->board_blackCase);
     free(manBoardD);
 }

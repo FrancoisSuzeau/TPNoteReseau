@@ -34,7 +34,8 @@ date : 25/10/2020
 
         typedef struct manage_board {
 
-            int     **board;
+            int     **boardSDL;
+            int     **board_blackCase;
             int     width;   //even if it's a square board i use different variable name to find myself in my program (in for loop for example) 
             int     height;    
 
@@ -52,6 +53,7 @@ date : 25/10/2020
         void displayBoard(SDL_Surface *screen, SDL_Surface *img_board);
         void updateMapPawn(SDL_Surface *screen, SDL_Surface *black_p, SDL_Surface *white_p, manage_board *man_mapPawn);
         void displaySelector(SDL_Rect *pos, int direction);
+        SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, int bool);
         void destroyBoard(manage_board *manBoardD);
 
 #endif
