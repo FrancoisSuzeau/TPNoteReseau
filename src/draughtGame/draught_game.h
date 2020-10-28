@@ -37,7 +37,8 @@ date : 25/10/2020
             int     **boardSDL;
             int     **board_blackCase;
             int     width;   //even if it's a square board i use different variable name to find myself in my program (in for loop for example) 
-            int     height;    
+            int     height;
+            int     selectIs;
 
         } manage_board;
 
@@ -53,7 +54,9 @@ date : 25/10/2020
         void displayBoard(SDL_Surface *screen, SDL_Surface *img_board);
         void updateMapPawn(SDL_Surface *screen, SDL_Surface *black_p, SDL_Surface *white_p, manage_board *man_mapPawn);
         void displaySelector(SDL_Rect *pos, int direction);
-        SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, int bool);
+        SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi);
+        int validateSelect(manage_board *manBoard, SDL_Rect *position);
+        int validateTaken(manage_board *manBoard, SDL_Rect *pos);
         void destroyBoard(manage_board *manBoardD);
 
 #endif

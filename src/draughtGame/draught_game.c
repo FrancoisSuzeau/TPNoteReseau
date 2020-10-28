@@ -68,17 +68,14 @@ void InGame(SDL_Surface *screen)
     initialiseBoard(my_manBoard);
 
     SDL_Rect position_selector;
+
     SDL_Rect localisation;
     position_selector.x = 0;
     position_selector.y = 0;
 
-    SDL_Rect save_pos;
-
     displayBoard(screen, img_board);
     updateMapPawn(screen, black_pawn, white_pawn, my_manBoard);
     SDL_Flip(screen);
-
-    int             isSelect = FALSE;
 
     int             continuer = TRUE;
     SDL_Event       event;
@@ -109,20 +106,7 @@ void InGame(SDL_Surface *screen)
                         displaySelector(&position_selector, RIGHT);
                         break;
                     case SDLK_SPACE:
-                        if(!isSelect)
-                        {
-                            save_pos = position_selector;
-                            SDL_FreeSurface(select_pawn);
-                            select_pawn = selectPawn(my_manBoard, &position_selector, isSelect);
-                            isSelect = TRUE;
-                        }
-                        else
-                        {
-                            SDL_FreeSurface(select_pawn);
-                            select_pawn = selectPawn(my_manBoard, &position_selector, isSelect);
-                            position_selector = save_pos;
-                            isSelect = FALSE;
-                        }
+                        select_pawn = selectPawn(my_manBoard, &position_selector);
                         break;
                     default:
                         break;
@@ -139,10 +123,11 @@ void InGame(SDL_Surface *screen)
 
     SDL_FreeSurface(white_pawn);
     SDL_FreeSurface(black_pawn);
-    SDL_FreeSurface(select_pawn);
+    //SDL_FreeSurface(select_pawn);
     SDL_FreeSurface(img_board);
 
     destroyBoard(my_manBoard);
+    //free(my_manBoard);
 }
 
 /************************************************************************************/
@@ -165,15 +150,15 @@ void initialiseBoard(manage_board *manBoardI)
     //initialise the double input table with size
     manBoardI->height = NB_BLOCK_HEIGHT;
     manBoardI->width = NB_BLOCK_WIDTH;
-    manBoardI->boardSDL = malloc(manBoardI->height * sizeof(int**));
-    manBoardI->board_blackCase = malloc(manBoardI->height*sizeof(int**));
+    manBoardI->boardSDL = malloc(manBoardI->width * sizeof(int**));
+    manBoardI->board_blackCase = malloc(manBoardI->width*sizeof(int**));
     
     if((manBoardI->boardSDL != NULL) && (manBoardI->board_blackCase != NULL))
     {
-        for(int i = 0; i < manBoardI->height; i++)
+        for(int i = 0; i < manBoardI->width; i++)
         {
             manBoardI->boardSDL[i] = malloc(manBoardI->width * sizeof(int*));
-            manBoardI->board_blackCase[i] = malloc(manBoardI->height*sizeof(int*));
+            manBoardI->board_blackCase[i] = malloc(manBoardI->width*sizeof(int*));
             if((manBoardI->boardSDL[i] == NULL) || (manBoardI->board_blackCase[i] == NULL))
             {
                 fprintf(stderr, "initialiseBoard() : malloc on boardSDL[%d] failure\n", i);
@@ -248,7 +233,7 @@ void initialiseBoard(manage_board *manBoardI)
             }
         }
     }
-
+    manBoardI->selectIs = EMPTY;
     int count = 1;
     for(int i = 0; i < manBoardI->width; i++)
     {
@@ -294,7 +279,7 @@ void initialiseBoard(manage_board *manBoardI)
 /* purpose : the selector become a pawn if on it then don't                         */
 /*                                                                                  */
 /************************************************************************************/
-SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, int bool)
+SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi)
 {
     if((manBord == NULL) || posi == NULL)
     {
@@ -303,31 +288,320 @@ SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, int bool)
     }
     
     SDL_Surface *newTexture = NULL;
-    if((newTexture = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL)
+    if((newTexture = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL) //TEMPORAIRE
     {
         fprintf(stderr, "Unable to create RGB surface select_pawn : %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
 
-    if(!bool)
+    if(manBord->selectIs == EMPTY) // the selector is empty
     {
-        if(manBord->boardSDL[posi->y][posi->x] == BLACK)
+        if(manBord->board_blackCase[posi->y][posi->x] == 0) // the selector is on a white case
         {
-            SDL_FreeSurface(newTexture);
-            if((newTexture = IMG_Load("../files/textures/black_pawn.png")) == NULL)
+            if((newTexture = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL) //stay black
             {
-                fprintf(stderr, "Unable to load black_pawn.png : %s\n", IMG_GetError());
+                fprintf(stderr, "Unable to create RGB surface select_pawn : %s\n", SDL_GetError());
                 exit(EXIT_FAILURE);
             }
-            manBord->boardSDL[posi->y][posi->x] = EMPTY;
+            manBord->selectIs = EMPTY;
+
+        }
+        else if(manBord->board_blackCase[posi->y][posi->x] != 0) // the selector is on brown case
+        {
+            if(manBord->boardSDL[posi->y][posi->x] == BLACK) //the case is not empty and with a black paw
+            {
+                if((validateSelect(manBord, posi) == TRUE) || validateTaken(manBord, posi) == TRUE)
+                {
+                    if((newTexture = IMG_Load("../files/textures/black_pawn.png")) == NULL) // Become black pawn TEMPORAIRE
+                    {
+                        fprintf(stderr, "selectPawn : unable to load black_pawn.png : %s", IMG_GetError());
+                        exit(EXIT_FAILURE);
+                    }
+                    manBord->selectIs = BLACK;
+                    manBord->boardSDL[posi->y][posi->x] = EMPTY;
+                }
+                
+                
+            }
+            else if(manBord->boardSDL[posi->y][posi->x] == WHITE) //the selector is on white pawn
+            {
+
+                if((validateSelect(manBord, posi) == TRUE) || validateTaken(manBord, posi) == TRUE)
+                {
+                    if((newTexture = IMG_Load("../files/textures/white_pawn.png")) == NULL) // Become white pawn
+                    {
+                        fprintf(stderr, "selectPawn : unable to load black_pawn.png : %s", IMG_GetError());
+                        exit(EXIT_FAILURE);
+                    }
+                    manBord->selectIs = WHITE;
+                    manBord->boardSDL[posi->y][posi->x] = EMPTY;
+                }
+
+            }
+            else if(manBord->boardSDL[posi->y][posi->x] == EMPTY)
+            {
+                if((newTexture = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL)
+                {
+                    fprintf(stderr, "Unable to create RGB surface select_pawn : %s\n", SDL_GetError());
+                    exit(EXIT_FAILURE);
+                }
+                manBord->selectIs = EMPTY;
+            }
         }
     }
-    else
+    else if(manBord->selectIs == BLACK) // the selector had select a black pawn
     {
-        manBord->boardSDL[posi->y][posi->x] = BLACK;   
+        if(manBord->board_blackCase[posi->y][posi->x] == 0) // is on a white case
+        {
+            if((newTexture = IMG_Load("../files/textures/black_pawn.png")) == NULL) //stay a black pawn
+            {
+                fprintf(stderr, "selectPawn : unable to load black_pawn.png : %s", IMG_GetError());
+                exit(EXIT_FAILURE);
+            }
+            manBord->selectIs = BLACK;
+        }
+        else if(manBord->board_blackCase[posi->y][posi->x] != 0) // the selector is on brown case
+        {
+            if(manBord->boardSDL[posi->y][posi->x] == BLACK) //on a black pawn
+            {
+                if((newTexture = IMG_Load("../files/textures/black_pawn.png")) == NULL) //stay black pawn
+                {
+                    fprintf(stderr, "selectPawn : unable to load black_pawn.png : %s", IMG_GetError());
+                    exit(EXIT_FAILURE);
+                }
+                manBord->selectIs = BLACK;
+                
+            }
+            else if(manBord->boardSDL[posi->y][posi->x] == WHITE) //is on a white pawn so his doing nothing
+            {
+                if((newTexture = IMG_Load("../files/textures/black_pawn.png")) == NULL) //Stay black pawn
+                {
+                    fprintf(stderr, "selectPawn : unable to load black_pawn.png : %s", IMG_GetError());
+                    exit(EXIT_FAILURE);
+                }
+                manBord->selectIs = BLACK;
+            }
+            else if(manBord->boardSDL[posi->y][posi->x] == EMPTY) //selector on empty 
+            {
+                if((newTexture = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL) //drop the black pawn and rebecome black
+                {
+                    fprintf(stderr, "Unable to create RGB surface select_pawn : %s\n", SDL_GetError());
+                    exit(EXIT_FAILURE);
+                }
+                manBord->selectIs = EMPTY;
+                manBord->boardSDL[posi->y][posi->x] = BLACK;
+            }
+        }
+    }
+    else if(manBord->selectIs == WHITE) //the selector had choose a white pawn
+    //TEMPORAIRE : quand client et serveur implementer on devrai choisir si joueur blanc ou noir ou spectacteur 
+    {
+        if(manBord->board_blackCase[posi->y][posi->x] == 0) // is on a white case
+        {
+            if((newTexture = IMG_Load("../files/textures/white_pawn.png")) == NULL) //stay a black pawn
+            {
+                fprintf(stderr, "selectPawn : unable to load white_pawn.png : %s", IMG_GetError());
+                exit(EXIT_FAILURE);
+            }
+            manBord->selectIs = WHITE;
+        }
+        else if(manBord->board_blackCase[posi->y][posi->x] != 0) // the selector is on brown case
+        {
+            if(manBord->boardSDL[posi->y][posi->x] == BLACK) //on a black pawn
+            {
+                if((newTexture = IMG_Load("../files/textures/white_pawn.png")) == NULL) //stay black pawn
+                {
+                    fprintf(stderr, "selectPawn : unable to load white_pawn.png : %s", IMG_GetError());
+                    exit(EXIT_FAILURE);
+                }
+                manBord->selectIs = WHITE;
+                
+            }
+            else if(manBord->boardSDL[posi->y][posi->x] == WHITE) //is on a white pawn so his doing nothing
+            {
+                if((newTexture = IMG_Load("../files/textures/white_pawn.png")) == NULL) //Stay black pawn
+                {
+                    fprintf(stderr, "selectPawn : unable to load white_pawn.png : %s", IMG_GetError());
+                    exit(EXIT_FAILURE);
+                }
+                manBord->selectIs = WHITE;
+            }
+            else if(manBord->boardSDL[posi->y][posi->x] == EMPTY) //selector on empty 
+            {
+                if((newTexture = SDL_CreateRGBSurface(SDL_HWSURFACE, 60, 60, 32, 0, 0, 255, 0)) == NULL) //drop the black pawn and rebecome black
+                {
+                    fprintf(stderr, "Unable to create RGB surface select_pawn : %s\n", SDL_GetError());
+                    exit(EXIT_FAILURE);
+                }
+                manBord->selectIs = EMPTY;
+                if(validateSelect(manBord, posi))
+                {
+                    
+                }
+                manBord->boardSDL[posi->y][posi->x] = WHITE;
+            }
+        }
     }
     
     return newTexture;
+}
+
+/************************************************************************************/
+/* function : validateTaken                                                         */
+/************************************************************************************/
+/* Input : manage_board *, SDL_Rect *                                               */
+/* Output : int                                                                     */
+/************************************************************************************/
+/* purpose : validate if the shot + 2 case in diagonal is correct or no             */
+/*                                                                                  */
+/************************************************************************************/
+int validateTaken(manage_board *manBoard, SDL_Rect *pos)
+{
+    int bool = FALSE;
+    //beging with the edge
+    if((pos->y - 2 == - 1) || (pos-> y - 1) == -1)
+    {
+        switch(pos->x + 2)
+        {
+            case NB_BLOCK_WIDTH:
+                if(manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY)
+                {
+                    bool = TRUE;
+                }
+                break;
+            default:
+                if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) || (manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY))
+                {
+                    bool = TRUE;
+                }
+                break;
+        }
+    }
+    else if((pos->y + 2 == NB_BLOCK_HEIGHT) || (pos->y + 1 == NB_BLOCK_HEIGHT))
+    {
+        switch(pos->x - 2)
+        {
+            case -1:
+                if(manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY)
+                {
+                    bool = TRUE;
+                }
+                break;
+            default:
+                if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) || (manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY))
+                {
+                    bool = TRUE;
+                }
+                break;
+        }
+
+    }
+    else if(pos->x - 1 == - 1)
+    {
+        if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) || (manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY))
+        {
+            bool = TRUE;
+        }
+
+    }
+    else if(pos->x + 1 == NB_BLOCK_WIDTH)
+    {
+        if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) || (manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY))
+        {
+            bool = TRUE;
+        }
+
+    }
+    else //all others who aren't on the edge
+    {
+        if((manBoard->boardSDL[pos->y + 2][pos->x-2] == EMPTY) || (manBoard->boardSDL[pos->y + 2][pos->x+2] == EMPTY)
+        || (manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) || (manBoard->boardSDL[pos-> y - 2][pos->x + 2] == EMPTY))
+        {
+            bool = TRUE;
+        }   
+    }
+    
+    return bool;
+    
+
+}
+
+/************************************************************************************/
+/* function : validateSelect                                                        */
+/************************************************************************************/
+/* Input : manage_board *, SDL_Rect *                                               */
+/* Output : int                                                                     */
+/************************************************************************************/
+/* purpose : validate if the shot is correct or no                                  */
+/*                                                                                  */
+/************************************************************************************/
+int validateSelect(manage_board *manBoard, SDL_Rect *position)
+{
+    int bool = FALSE;
+    //beging with the edge
+    if(position->y - 1 == - 1)
+    {
+        switch(position->x + 1)
+        {
+            case NB_BLOCK_WIDTH:
+                if(manBoard->boardSDL[position->y + 1][position->x - 1] == EMPTY)
+                {
+                    bool = TRUE;
+                }
+                break;
+            default:
+                if((manBoard->boardSDL[position->y + 1][position->x - 1] == EMPTY) || (manBoard->boardSDL[position->y + 1][position->x + 1] == EMPTY))
+                {
+                    bool = TRUE;
+                }
+                break;
+        }
+    }
+    else if(position->y + 1 == NB_BLOCK_HEIGHT)
+    {
+        switch(position->x - 1)
+        {
+            case -1:
+                if(manBoard->boardSDL[position->y - 1][position->x + 1] == EMPTY)
+                {
+                    bool = TRUE;
+                }
+                break;
+            default:
+                if((manBoard->boardSDL[position->y - 1][position->x + 1] == EMPTY) || (manBoard->boardSDL[position->y - 1][position->x + 1] == EMPTY))
+                {
+                    bool = TRUE;
+                }
+                break;
+        }
+
+    }
+    else if(position->x - 1 == - 1)
+    {
+        if((manBoard->boardSDL[position->y - 1][position->x + 1] == EMPTY) || (manBoard->boardSDL[position->y + 1][position->x + 1] == EMPTY))
+        {
+            bool = TRUE;
+        }
+
+    }
+    else if(position->x + 1 == NB_BLOCK_WIDTH)
+    {
+        if((manBoard->boardSDL[position->y + 1][position->x - 1] == EMPTY) || (manBoard->boardSDL[position->y - 1][position->x - 1] == EMPTY))
+        {
+            bool = TRUE;
+        }
+
+    }
+    else //all others who aren't on the edge
+    {
+        if((manBoard->boardSDL[position->y + 1][position->x-1] == EMPTY) || (manBoard->boardSDL[position->y + 1][position->x+1] == EMPTY)
+        || (manBoard->boardSDL[position->y - 1][position->x - 1] == EMPTY) || (manBoard->boardSDL[position-> y - 1][position->x + 1] == EMPTY))
+        {
+            bool = TRUE;
+        }   
+    }
+    
+    return bool;
 }
 
 /************************************************************************************/
@@ -461,5 +735,5 @@ void destroyBoard(manage_board *manBoardD)
 
     free(manBoardD->boardSDL);
     free(manBoardD->board_blackCase);
-    free(manBoardD);
+    //free(manBoardD);
 }
