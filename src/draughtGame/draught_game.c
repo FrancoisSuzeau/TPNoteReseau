@@ -269,7 +269,6 @@ void initialiseBoard(manage_board *manBoardI)
         }
     } 
 }
-
 /************************************************************************************/
 /* function : selectPawn                                                            */
 /************************************************************************************/
@@ -514,11 +513,29 @@ int validateTaken(manage_board *manBoard, SDL_Rect *pos)
     }
     else //all others who aren't on the edge
     {
-        if((manBoard->boardSDL[pos->y + 2][pos->x-2] == EMPTY) || (manBoard->boardSDL[pos->y + 2][pos->x+2] == EMPTY)
-        || (manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) || (manBoard->boardSDL[pos-> y - 2][pos->x + 2] == EMPTY))
+        if(manBoard->boardSDL[pos->y + 2][pos->x-2] == EMPTY)
         {
-            bool = TRUE;
-        }   
+            if(manBoard->selectIs == BLACK)
+            {
+                if(manBoard->boardSDL[pos->y + 1][pos->x -1] == WHITE)
+                {
+                    bool = TRUE;
+                }
+            }
+        }
+        else if(manBoard->boardSDL[pos->y + 2][pos->x+2] == EMPTY)
+        {
+
+        }
+        else if(manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY)
+        {
+            
+        }
+        else if(manBoard->boardSDL[pos-> y - 2][pos->x + 2] == EMPTY)
+        {
+            
+        }
+        
     }
     
     return bool;
