@@ -19,7 +19,7 @@ date : 28/10/2020
 /************************************************************************************/
 /* purpose : create the file for each player capabilities                           */
 /************************************************************************************/
-void readDataBase(manage_player *player)
+int readDataBase(manage_player *player)
 {
     if(player == NULL)
     {
@@ -27,17 +27,25 @@ void readDataBase(manage_player *player)
         exit(EXIT_FAILURE);
     }
 
+    char nameFile[3][MAX] = {""};
+    strcat(nameFile[0], "../../files/infojoueurs/player1.txt");
+    strcat(nameFile[1], "../../files/infojoueurs/player2.txt");
+    strcat(nameFile[2], "../../files/infojoueurs/viewer.txt");
     int count;
     int fd_player;
-    if(player->which_one == PLAYER1)
+    char buf[MAX] = "";
+    int counter = 0;
+
+    while (TRUE)
     {
-        if((fd_player = open("../../files/infojoueurs/player1.txt", O_CREAT | O_RDWR, 0777)) == -1)
+        if((fd_player = open(nameFile[counter], O_CREAT | O_RDWR, 0777)) == -1)
         {
-            perror("registry() :  cannot open player1.txt : ");
+            printf("registry() :  cannot open %s \n: ", nameFile[counter]);
+            perror("here is why : ");
             exit(EXIT_FAILURE);
         }
 
-        if((count = read(fd_player, player->name, MAX)) != -1)
+        if((count = read(fd_player, buf, strlen(player->name))) != -1)
         {
             if(count == 0)
             {
@@ -45,51 +53,31 @@ void readDataBase(manage_player *player)
             }
             else if(count > 0)
             {
-                player->isRegistred = TRUE;
+                if(strcmp(buf, player->name) == 0)
+                {
+                    player->isRegistred = TRUE;
+                    break;
+                }
+                else
+                {
+                    player->isRegistred = FALSE;
+                }
+                
             }
+        }
+
+        close(fd_player);
+        if(counter == 2)
+        {
+            break;
+        }
+        else
+        {
+            counter++;
         }
     }
-    else if(player->which_one == PLAYER2)
-    {
-        if((fd_player = open("../../files/infojoueurs/player2.txt", O_CREAT | O_RDWR, 0777)) == -1)
-        {
-            perror("registry() :  cannot open player2.txt : ");
-            exit(EXIT_FAILURE);
-        }
-        if((count = read(fd_player, player->name, MAX)) != -1)
-        {
-            if(count == 0)
-            {
-                player->isRegistred = FALSE;
-            }
-            else if(count > 0)
-            {
-                player->isRegistred = TRUE;
-            }
-            
-        }
-    }
-    else if(player->which_one == VIEWER)
-    {
-        if((fd_player = open("../../files/infojoueurs/viewer.txt", O_CREAT | O_RDWR, 0777)) == -1)
-        {
-            perror("registry() :  cannot open viewer2.txt : ");
-            exit(EXIT_FAILURE);
-        }
-        if((count = read(fd_player, player->name, MAX)) != -1)
-        {
-            if(count == 0)
-            {
-                player->isRegistred = FALSE;
-            }
-            else if(count > 0)
-            {
-                player->isRegistred = TRUE;
-            }
-        }
-    }
-    
-    close(fd_player);
+
+    return player->isRegistred;
 }
 
 /************************************************************************************/
@@ -122,3 +110,4 @@ void logIn(manage_player *player)
         }
     }
 }
+

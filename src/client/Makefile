@@ -4,7 +4,7 @@
 # $^ la liste des dépendances
 # @$ pour desactiver l'echo des lignes de commandes en cas d'erreur
 
-CFLAGS=-Wall -Wextra -lm
+CFLAGS=-Wall -Wextra -lm -g
 SDLFLAG=-lSDLmain -lSDL 
 SDLIMAGEFLAGS=-lSDL_image
 EXEC=clientTCP
@@ -14,7 +14,7 @@ CC=gcc
 # SRC contient liste des fichier sources du projet 
 # on pourrait utiliser une construction automatique a l'aide du joker *.c et la commande wildcard mais il faudra gerer les dépendances vis a vis des .h
 # SRC=$(wildcard *.c)
-SRC=clientTCP.c draughtGame/draught_game.c profil/profil.c
+SRC=clientTCP.c draughtGame/draught_game.c profil/profil.c communication/communication.c sdlboard/sdl.c
 OBJET=$(SRC:.c=.o)
 
 all:${EXEC}
@@ -23,9 +23,11 @@ ${EXEC}: ${OBJET}
 	@${CC}  -o $@ $^ ${SDLFLAG} ${SDLIMAGEFLAGS} ${CFLAGS}
 
 # au cas ou .h est modifié
-clientTCP.o: draughtGame/draught_game.h constant/constant.h profil/profil.h
-draught_game.o: draught_game.h constant/constant.h
-profil.o: profil.h constant/constant.h
+clientTCP.o: draughtGame/draught_game.h ../constant/constant.h profil/profil.h communication/communication.h sdlboard/sdl.h
+draught_game.o: draught_game.h ../constant/constant.h
+profil.o: profil.h ../constant/constant.h
+communication.o: communication.h ../constant/constant.h
+sdl.o: sdl.h ../constant/constant.h
 
 %.o:%.c
 	@$(CC) -o $@ -c $< ${CFLAGS}

@@ -21,7 +21,7 @@ date : 25/10/2020
         #include <math.h>
 
         //local includes
-        #include "../constant/constant.h"
+        #include "../../constant/constant.h"
 
         //SDL header
         #include <SDL/SDL.h>
@@ -45,18 +45,10 @@ date : 25/10/2020
     /*********************************************************************************************************************/
     /*                                                  prototypes                                                       */
     /*********************************************************************************************************************/
-
-        void Hello();
-
-        void InGame(SDL_Surface *screen);
-
+        void InGame(SDL_Surface *screen, int tourjoueur);
         void initialiseBoard(manage_board *this);
-        void displayBoard(SDL_Surface *screen, SDL_Surface *img_board);
-        void updateMapPawn(SDL_Surface *screen, SDL_Surface *black_p, SDL_Surface *white_p, manage_board *man_mapPawn);
-        void displaySelector(SDL_Rect *pos, int direction);
-        SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *newPosition);
         int validateSelect(manage_board *manBoard, SDL_Rect *position);
-        int validateTaken(manage_board *manBoard, SDL_Rect *pos, SDL_Rect *updatePos);
+        int validateTaken(manage_board *manBoard, SDL_Rect *pos);
         void destroyBoard(manage_board *manBoardD);
 
 #endif

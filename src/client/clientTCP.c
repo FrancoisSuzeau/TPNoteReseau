@@ -10,39 +10,36 @@ date : 25/10/2020
 
 #include "draughtGame/draught_game.h"
 #include "profil/profil.h"
+#include "communication/communication.h"
+#include "sdlboard/sdl.h"
+#include <assert.h>
+
+    
 
 int main(int argc, char *argv[])
 {
     (void) argc;
 	(void) argv;
 
-    manage_player *player = malloc(sizeof(manage_player*));
-    player->which_one = PLAYER1;
+    manage_player *player = malloc(sizeof(manage_player));
     player->isConnected = FALSE;
-    readDataBase(player);
 
     struct sockaddr_in ser_addr;
 	int sk;
-    char buf[MAX];                                                            
+    char buf[MAX] = {""};                                                            
     int count;
     int connect_fd;
     
-
+    bzero((char*) &ser_addr, sizeof(ser_addr));
     ser_addr.sin_family = AF_INET;
     ser_addr.sin_port = htons(12345);
-
-    if((inet_aton("127.0.0.1", (struct in_addr *)&ser_addr.sin_addr)) == 0)
-    {
-    	perror(" Client : Failure inet_aton");
-    	exit(EXIT_FAILURE);
-    }
+    ser_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     if((sk = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
         perror("Client : Failure create socket : ");
         exit(EXIT_FAILURE);
     }
-
     
     if((connect_fd = connect(sk, (struct sockaddr *)&ser_addr, sizeof(ser_addr))) == -1)
     {
@@ -55,78 +52,61 @@ int main(int argc, char *argv[])
         ser_addr.sin_zero[i] = 0;
     }
 
-    while (strcmp(buf, "quit"))
-    {
-        buf[0] = '\0';
-        if((player->isConnected == FALSE) && (nb_connection == PLAYER1))
-        {
-            printf("%d\n", nb_connection);
-            logIn(player);
-            strcat(buf, player->name);
-            player->isConnected = TRUE;
-        }
-        if((count = sendto(sk, buf, sizeof(buf), 0, (struct sockaddr*)&ser_addr, sizeof(ser_addr))) == -1)
-        {
-            perror("Client : send data failure : ");
-            exit(EXIT_FAILURE);
-        }
+    connection_ask(player, sk);
 
-        else
-        {
-            printf(" Client : Here is the message send : %s and send count = %d\n", buf, count);
-            buf[0] = '\0';
-            strcat(buf, "quit");
-        }
-    }
-    puts(">>> Client : End of transmission");
-    /*if(SDL_Init(SDL_INIT_VIDEO) != 0)
-    {
-        fprintf(stderr, "Unable to initialize SDL : %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-    }
+    SDL_Surface *screen = sdlInit();
 
-    SDL_Surface     *screen = NULL;
-
-    if((screen = SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, 32, SDL_HWSURFACE | SDL_DOUBLEBUF)) == NULL)
-    {
-        fprintf(stderr, "Unable to launch video mode : %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-    }
-
+    initTexture();
+    SDL_Surface *select_pawn = getSelector();
+   
+    manage_board *my_manBoard = malloc(sizeof(manage_board));
+    initialiseBoard(my_manBoard);
     
 
-    SDL_Event       event;
+    SDL_Rect position_selector;
+
+    SDL_Rect localisation;
+    position_selector.x = 0;
+    position_selector.y = 0;
+    
+    displayBoard(screen);
+    updateMapPawn(screen, my_manBoard);
+    SDL_Flip(screen);
+
+    int             continuer = TRUE;
 
     while(continuer)
     {
-        SDL_WaitEvent(&event);
-        switch(event.type)
-        {
-            case SDL_QUIT:
-                continuer = FALSE;
-                break;
-            case SDL_KEYDOWN:
-                switch(event.key.keysym.sym)
-                {
-                    case SDLK_ESCAPE:
-                        continuer = FALSE;
-                        break;
-                    case SDLK_SPACE:
-                        InGame(screen);
-                        break;
-                    default:
-                        break;
-                }
-        }
-        SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
+        continuer = handle_event(player, &position_selector, my_manBoard, &select_pawn);
+        displayBoard(screen);
+        localisation.x = position_selector.x * BLOCK_SIZE;
+        localisation.y = position_selector.y * BLOCK_SIZE;
+        SDL_BlitSurface(select_pawn, NULL, screen, &localisation);
+        updateMapPawn(screen, my_manBoard);
         SDL_Flip(screen);
     }
 
-    SDL_FreeSurface(screen);
-    SDL_Quit();*/
+    freeTexture();
 
-    
+    destroyBoard(my_manBoard);
+    free(my_manBoard);
+
+    SDL_FreeSurface(screen);
+    SDL_Quit();
 
     free(player);
+
+    buf[0] = '\0';
+    strcat(buf, "quit");
+    if((count = send(sk, buf, sizeof(buf), 0)) == -1)
+    {
+        perror("Client : send data failure : ");
+        exit(EXIT_FAILURE);
+    }
+    puts(">>> Client : End of transmission");
+
+    shutdown(sk, SHUT_RDWR);
+    close(sk);
+    
     return EXIT_SUCCESS;
 }

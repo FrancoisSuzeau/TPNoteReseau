@@ -4,6 +4,9 @@ SUZEAU Francois
 
 ## INFORMATIONS IMPORTANTES
 
-Je vous demande de compiler le projet avant la première utilisation sinon vous aurez des erreurs de pointeurs.
+Je vous demande de compiler le projet avant la première utilisation sinon vous aurez des erreurs de pointeurs. Un makefile est disponible pour le client ET le serveur.
 
-Le jeu de dame en lui même ne fonctionne pas. Mais chaque joueur peut bouger ses pions chacun son tour, et le serveur actualise pour tout client connecter.
+Il faut rentrer son nom dans le client. Si vous êtes connu du serveur vous serez directement connecter, sinon il vous enregistrera dans un fichier.
+Il y a trois fichier. Un par personne se connectant pas plus.
+
+Le jeu de dame en lui même ne fonctionne pas. Mais chaque joueur peut bouger ses pions.

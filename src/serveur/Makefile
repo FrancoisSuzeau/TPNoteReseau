@@ -4,7 +4,7 @@
 # $^ la liste des dépendances
 # @$ pour desactiver l'echo des lignes de commandes en cas d'erreur
 
-CFLAGS=-Wall -Wextra
+CFLAGS=-Wall -Wextra -g
 EXEC=serveurTCP
 CC=gcc
 
@@ -12,7 +12,7 @@ CC=gcc
 # SRC contient liste des fichier sources du projet 
 # on pourrait utiliser une construction automatique a l'aide du joker *.c et la commande wildcard mais il faudra gerer les dépendances vis a vis des .h
 # SRC=$(wildcard *.c)
-SRC=serveurTCP.c
+SRC=serveurTCP.c function.c
 OBJET=$(SRC:.c=.o)
 
 all:${EXEC}
@@ -21,8 +21,8 @@ ${EXEC}: ${OBJET}
 	@${CC}  -o $@ $^ ${SDLFLAG} ${SDLIMAGEFLAGS} ${CFLAGS}
 
 # au cas ou .h est modifié
-serveurTCP.o: ../client/constant/constant.h
-
+serveurTCP.o: function.h ../constant/constant.h
+function.o: function.h ../constant/constant.h
 %.o:%.c
 	@$(CC) -o $@ -c $< ${CFLAGS}
 

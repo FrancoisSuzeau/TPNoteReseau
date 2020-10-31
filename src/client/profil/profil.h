@@ -4,7 +4,7 @@ purpose : headerfile for module draught_game
 
 created by : Francois Suzeau
 
-date : 25/10/2020
+date : 28/10/2020
 
 */
 
@@ -28,11 +28,10 @@ date : 25/10/2020
         #include <arpa/inet.h>
         #include <netdb.h>
         #include <errno.h>
-        #include <sys/stat.h>
         #include <fcntl.h>
         
         //local includes
-        #include "../constant/constant.h"
+        #include "../../constant/constant.h"
 
     /*********************************************************************************************************************/
     /*                                              variables needed                                                     */
@@ -44,14 +43,13 @@ date : 25/10/2020
             int     isConnected;
         } manage_player;
 
-        enum{PLAYER1, PLAYER2, VIEWER};
         
 
     /*********************************************************************************************************************/
     /*                                                  prototypes                                                       */
     /*********************************************************************************************************************/
 
-        void readDataBase(manage_player *player);
+        int readDataBase(manage_player *player);
         void logIn(manage_player *player);
 
 
