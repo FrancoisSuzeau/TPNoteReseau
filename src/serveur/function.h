@@ -33,6 +33,8 @@ date : 28/10/2020
         #include <errno.h>
         #include <sys/stat.h>
         #include <fcntl.h>
+
+        #include <math.h>
         
         //local includes
         #include "../constant/constant.h"
@@ -41,14 +43,23 @@ date : 28/10/2020
     /*                                              variables needed                                                     */
     /*********************************************************************************************************************/
 
-        
+        typedef struct board {
+            int     **map_pawn;
+            int     width;
+            int     height;
+        } board;
 
     /*********************************************************************************************************************/
     /*                                                  prototypes                                                       */
     /*********************************************************************************************************************/
+        void initialize_map(board *manBoard);
+        void destroy_map(board *manBoard);
 
         void create_account(char *name, int num_file);
+        void handle_connection(int *sk, int *connect_fd, int *sk_accept, struct sockaddr_in *cli, socklen_t *add_size);
         int handle_logIn(char *mrecv, int sk_accept, int nb_connection);
+        int launch_party(int *sk_accept);
         int handle_exitStatus(int status);
+        //int handle_turn(char *mrcv, int s_accept, board *manB);
 
 #endif

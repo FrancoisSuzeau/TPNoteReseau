@@ -16,9 +16,9 @@ int main(int argc, char *argv[], char ** arge)
 	(void) argv;
 	(void) arge;
 
-    char buf[MAX];
     struct sockaddr_in ser, cli;                                                              
-    int sk, ret,count, sk_accept, connect_fd, continuer, status, exit_status, nb_connection;
+    int sk, ret, connect_fd;
+    int sk_accept[3] = {0};
     socklen_t add_size;
 
     memset(&ser, 0, sizeof(struct sockaddr_in));
@@ -44,70 +44,23 @@ int main(int argc, char *argv[], char ** arge)
 
     add_size = sizeof(ser);
 
-    pid_t son_pid;
-
-    nb_connection = 0;
-    continuer = TRUE;
+    board *my_manBoard = malloc(sizeof(board));
+    initialize_map(my_manBoard);
     
-    while (continuer)
-    {
-        if(nb_connection < 3)
-        {
-            if((connect_fd = listen(sk, 3)) == -1)
-            {
-                perror("Serveur : Failure listen function : \n");
-                exit(EXIT_FAILURE);
-            }
-            if((sk_accept = accept(sk, (struct sockaddr *)&cli, &add_size)) == -1)
-            {
-                perror("Serveur : Failure accept function : \n");
-                exit(EXIT_FAILURE);
-            }
-            else
-            {
-                printf(">>> Serveur has a new connexion : %s\n", inet_ntoa(cli.sin_addr));
-                nb_connection++;
-            }
-        }
-        
-        son_pid = fork();
-        
-        switch(son_pid)
-        {
-            case -1:
-                perror("Error fork failure");
-                exit(EXIT_FAILURE);
-                break;
-            case 0:
-                puts("Serveur : Input info:>>>");
-                buf[0] = '\0';
-                if((count = recv(sk_accept, buf, sizeof(buf), 0)) == -1)
-                {
-                    perror("Serveur : receive data failure : \n");
-                }
-                else 
-                {
-                    if(nb_connection < 4)
-                    {
-                        exit_status = handle_logIn(buf, sk_accept, nb_connection);
-                        exit(exit_status);
-                    }
-                    else if(strcmp(buf, "quit"))
-                    {
-                        exit(0);
-                    }
-                }
-                break;
-            default:
-                wait(&status);
-                continuer = handle_exitStatus(status);
-        }
-    }
+    handle_connection(&sk, &connect_fd, sk_accept, &cli, &add_size);
 
-    
-    shutdown(sk_accept, sk);
-    close(sk_accept);
+    launch_party(sk_accept);
+ 
+    shutdown(sk_accept[0], sk);
+    shutdown(sk_accept[1], sk);
+    shutdown(sk_accept[2], sk);
+    close(sk_accept[0]);
+    close(sk_accept[1]);
+    close(sk_accept[2]);
     close(sk);
+
+    destroy_map(my_manBoard);
+    free(my_manBoard);
 
     return EXIT_SUCCESS;
 }

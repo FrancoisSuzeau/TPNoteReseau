@@ -28,8 +28,10 @@ date : 25/10/2020
     /*********************************************************************************************************************/
     #define CONNECTED   0x01
     #define REGISTRED   0x02
-    #define MOVE        0x03
-    #define DECONNECTED 0X04
+    #define CANPLAY     0x03
+    #define WAITING     0x04
+    #define MOVE        0x05
+    #define TAKE        0x06
 
     #include <stdio.h>
     #include <stdlib.h>

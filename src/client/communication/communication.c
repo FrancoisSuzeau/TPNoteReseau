@@ -11,7 +11,7 @@ date : 25/10/2020
 #include "communication.h"
 
 /************************************************************************************/
-/* function : initialiseBoard                                                       */
+/* function :                                                                       */
 /************************************************************************************/
 /* Input : manage_board *                                                           */
 /* Output : void                                                                    */
@@ -47,7 +47,7 @@ void connection_ask(manage_player *player, int sk)
             buf[0] = '\0';
             if((count = recv(sk, buf, sizeof(buf), 0)) == -1)
             {
-                perror("Serveur : receive data failure : \n");
+                perror("CLient : receive data failure : \n");
             }
             else
             {
@@ -63,4 +63,76 @@ void connection_ask(manage_player *player, int sk)
         strcat(buf, "quit");
     }
 
+}
+
+/************************************************************************************/
+/* function :                                                        */
+/************************************************************************************/
+/* Input : manage_board *                                                           */
+/* Output : void                                                                    */
+/************************************************************************************/
+/* purpose : this function initialise the map pawn at the beginning                 */
+/*                                                                                  */
+/************************************************************************************/
+void waiting_beging(int sk, manage_player *player)
+{
+    int count = 0;
+    char buf[MAX] = {""};
+
+    if(player->isConnected == TRUE)
+    {
+        while(TRUE)
+        {
+            buf[0] = '\0';
+            if((count = recv(sk, buf, sizeof(buf), 0)) == -1)
+            {
+                perror("CLient : receive data failure : \n");
+            }
+            else
+            {
+                if(buf[0] == CANPLAY)
+                {
+                    puts(">>>> An other player has arrived, you can now play. ENJOY !");
+                    break;
+                }
+                else
+                {
+                    printf(">>>> %s please wait an other player .... \n", player->name);
+                }
+                
+            }
+        }
+    }
+}
+
+/************************************************************************************/
+/* function :                                                        */
+/************************************************************************************/
+/* Input : manage_board *                                                           */
+/* Output : void                                                                    */
+/************************************************************************************/
+/* purpose : this function initialise the map pawn at the beginning                 */
+/*                                                                                  */
+/************************************************************************************/
+void sendMove(SDL_Rect *current_pos, SDL_Rect *newPos, int *sk)
+{
+    char msg[MAX] = {""};
+    int count = 0;
+
+    msg[0] = MOVE;
+    msg[1] = (char)current_pos->x;
+    msg[2] = (char)current_pos->y;
+    msg[3] = (char)newPos->x;
+    msg[3] = (char)newPos->y;
+
+    if((count = send(*sk, msg, sizeof(msg), 0)) == -1)
+    {
+        perror("Client : send data failure : ");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        puts("Client : move send to serveur");
+    }
+    
 }

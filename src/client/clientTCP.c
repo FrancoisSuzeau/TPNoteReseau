@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
 
     connection_ask(player, sk);
 
+    //waiting_beging(sk, player);
+
     SDL_Surface *screen = sdlInit();
 
     initTexture();
@@ -66,8 +68,14 @@ int main(int argc, char *argv[])
     SDL_Rect position_selector;
 
     SDL_Rect localisation;
+    SDL_Rect ancientPos;
+    SDL_Rect newPos;
     position_selector.x = 0;
     position_selector.y = 0;
+    ancientPos.x = 0;
+    ancientPos.y = 0;
+    newPos.x = 0;
+    newPos.y = 0;
     
     displayBoard(screen);
     updateMapPawn(screen, my_manBoard);
@@ -77,11 +85,23 @@ int main(int argc, char *argv[])
 
     while(continuer)
     {
-        continuer = handle_event(player, &position_selector, my_manBoard, &select_pawn);
+        continuer = handle_event(player, &position_selector, my_manBoard, &select_pawn, &ancientPos, &newPos);
         displayBoard(screen);
         localisation.x = position_selector.x * BLOCK_SIZE;
         localisation.y = position_selector.y * BLOCK_SIZE;
         SDL_BlitSurface(select_pawn, NULL, screen, &localisation);
+        if(player->which_one == PLAYER1)
+        {
+            if((ancientPos.x != 0) && (ancientPos.y != 0))
+            {
+                sendMove(&ancientPos, &newPos, &sk);
+                ancientPos.x = 0;
+                ancientPos.y = 0;
+                newPos.x = 0;
+                newPos.y = 0;
+            }
+            
+        }
         updateMapPawn(screen, my_manBoard);
         SDL_Flip(screen);
     }

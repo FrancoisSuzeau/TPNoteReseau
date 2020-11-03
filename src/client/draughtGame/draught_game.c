@@ -165,149 +165,227 @@ void initialiseBoard(manage_board *manBoardI)
 int validateTaken(manage_board *manBoard, SDL_Rect *pos)
 {
     int bool = FALSE;
-    //beging with the edge
-    if((pos->y - 2 == - 1) || (pos-> y - 1) == -1)
+    switch(pos->y) // we verifying first the 2 line at the with x with the different value of x
     {
-        switch(pos->x + 2)
-        {
-            case NB_BLOCK_WIDTH:
-                if(manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY)
+        case 0: //upper line
+            if(manBoard->boardSDL[pos->y][pos->x] == BLACK)
+            {
+                switch (pos->x)
                 {
-                    if(manBoard->selectIs == BLACK)
+                    case 1: // case number 1 on board_black case
+                        if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    case NB_BLOCK_WIDTH - 2: // case number 5 on board_black case
+                        if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    default: //others on that line
+                        if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE) )
+                        {
+                            bool = TRUE;
+                        }
+                        else if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                }
+            }
+            break;
+        case 1: //line 1
+            if(manBoard->boardSDL[pos->y][pos->x] == BLACK)
+            {
+                switch (pos->x)
+                {
+                    case 0: // case number 6 on board_black case
+                        if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    case NB_BLOCK_WIDTH - 2: // case number 10 on board_black case
+                        if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    default: //others on that line
+                        if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE) )
+                        {
+                            bool = TRUE;
+                        }
+                        else if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                }
+            }
+            break;
+        case NB_BLOCK_HEIGHT - 2: //line 8
+            if(manBoard->boardSDL[pos->y][pos->x] == WHITE)
+            {
+                switch(pos->x) 
+                {
+                    case 1: // case number 41 on board_black case
+                        if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    case NB_BLOCK_WIDTH - 1: // case number 45 on board_black case
+                        if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    default: //others on that line
+                        if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                        else if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                }
+            }
+            break;
+        case NB_BLOCK_HEIGHT - 1: //line 9
+            if(manBoard->boardSDL[pos->y][pos->x] == WHITE)
+            {
+                switch(pos->x)
+                {
+                    case 0: // case number 46 on board_black case
+                        if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK)) // case number 11 on board_black case
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    case NB_BLOCK_WIDTH - 2: // case number 50 on board_black case
+                        if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                    default: //others on that line
+                        if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                        else if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                        break;
+                }
+            }
+            break;
+        default:
+            switch(pos->x)
+            {
+                case 0: // case number 16, 26, 36 on board_black case
+                    if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == BLACK))
                     {
-                        if(manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE)
+                        if(manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE)
                         {
                             bool = TRUE;
                         }
                     }
-                }
-                break;
-            default:
-                if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) || (manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY))
-                {
-                    if(manBoard->selectIs == BLACK)
-                    {
-                        if((manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE) && (manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY))
-                        {
-                            bool = TRUE;
-                        }
-                        else if((manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE) && (manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY))
-                        {
-                            bool = TRUE;
-                        }
-                    }
-                }
-                break;
-        }
-    }
-    else if((pos->y + 2 == NB_BLOCK_HEIGHT) || (pos->y + 1 == NB_BLOCK_HEIGHT))
-    {
-        switch(pos->x - 2)
-        {
-            case -1:
-                if(manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY)
-                {
-                    if(manBoard->selectIs == WHITE)
+                    else if(manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY && manBoard->boardSDL[pos->y][pos->x] == WHITE)
                     {
                         if(manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK)
                         {
                             bool = TRUE;
                         }
                     }
-                }
-                break;
-            default:
-                if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) || (manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY))
-                {
-                    if(manBoard->selectIs == WHITE)
+                    break;
+                case 1: // case number 21, 31 on board_black case
+                    if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == BLACK))
                     {
-                        if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK))
-                        {
-                            bool = TRUE;
-                        }
-                        else if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK))
+                        if(manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE)
                         {
                             bool = TRUE;
                         }
                     }
-                }
-                break;
-        }
-
-    }
-    else if(pos->x - 1 == - 1)
-    {
-        if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) || (manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY))
-        {
-            if(manBoard->selectIs == WHITE)
-            {
-                if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) && ((manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK)))
-                {
-                    bool = TRUE;
-                }
+                    else if(manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY && manBoard->boardSDL[pos->y][pos->x] == WHITE)
+                    {
+                        if(manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK)
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    break;
+                case NB_BLOCK_WIDTH - 2: // case number 20, 30, 40 on board_black case
+                    if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == BLACK))
+                    {
+                        if(manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE)
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    else if(manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY && manBoard->boardSDL[pos->y][pos->x] == WHITE)
+                    {
+                        if(manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK)
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    break;
+                case NB_BLOCK_WIDTH - 1: // case number 25, 35 on board_black case
+                    if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == BLACK))
+                    {
+                        if(manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE)
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    else if(manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY && manBoard->boardSDL[pos->y][pos->x] == WHITE)
+                    {
+                        if(manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK)
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    break;
+                default: //we are completely turn arround the board now it's only the current pawn and the pawn in front who make the difference
+                    if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == BLACK)) 
+                    {
+                        if((manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE) || (manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    else if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == BLACK))
+                    {
+                        if((manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE) || (manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE))
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    else if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == WHITE))
+                    {
+                        if((manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK) || (manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    else if((manBoard->boardSDL[pos->y - 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y][pos->x] == WHITE))
+                    {
+                        if((manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK) || (manBoard->boardSDL[pos->y - 1][pos->x + 1] == BLACK))
+                        {
+                            bool = TRUE;
+                        }
+                    }
+                    break;
             }
-            else if(manBoard->selectIs == BLACK)
-            {
-                if((manBoard->boardSDL[pos->y + 2][pos->x + 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x + 1] == WHITE))
-                {
-                    bool = TRUE;
-                }
-            }
-            
-        }
-
-    }
-    else if(pos->x + 1 == NB_BLOCK_WIDTH)
-    {
-        if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) || (manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY))
-        {
-            if(manBoard->selectIs == BLACK)
-            {
-                if((manBoard->boardSDL[pos->y + 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x - 1] == WHITE))
-                {
-                    bool = TRUE;
-                }
-            }
-            else if(manBoard->selectIs == WHITE)
-            {
-                if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && (manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK))
-                {
-                    bool = TRUE;
-                }
-            }
-            
-        }
-
-    }
-    else //all others who aren't on the edge
-    {
-        if((manBoard->boardSDL[pos->y + 2][pos->x-2] == EMPTY) || (manBoard->boardSDL[pos->y + 2][pos->x+2] == EMPTY)
-        || (manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) || (manBoard->boardSDL[pos-> y - 2][pos->x + 2] == EMPTY))
-        {
-            if(manBoard->selectIs == BLACK)
-            {
-                if((manBoard->boardSDL[pos->y + 2][pos->x-2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x-1] == WHITE))
-                {
-                    bool = TRUE;
-                }
-                else if((manBoard->boardSDL[pos->y + 2][pos->x+2] == EMPTY) && (manBoard->boardSDL[pos->y + 1][pos->x+1] == WHITE))
-                {
-                    bool = TRUE;
-                }
-            }
-            else if(manBoard->selectIs == WHITE)
-            {
-                if((manBoard->boardSDL[pos->y - 2][pos->x - 2] == EMPTY) && ((manBoard->boardSDL[pos->y - 1][pos->x - 1] == BLACK)))
-                {
-                    bool = TRUE;
-                }
-                else if((manBoard->boardSDL[pos-> y - 2][pos->x + 2] == EMPTY) && ((manBoard->boardSDL[pos-> y - 1][pos->x + 1] == BLACK)))
-                {
-                    bool = TRUE;
-                }
-            }
-        }
-        
+            break;
     }
     
     return bool;
@@ -326,7 +404,7 @@ int validateSelect(manage_board *manBoard, SDL_Rect *position)
 {
     int bool = FALSE;
     //beging with the edge
-    if(position->y - 1 == - 1)
+    if(position->y - 1 == - 1) // upper line
     {
         switch(position->x + 1)
         {

@@ -22,6 +22,8 @@ date : 25/10/2020
         //local includes
         #include "../../constant/constant.h"
         #include "../profil/profil.h"
+        #include "../sdlboard/sdl.h"
+
 
     /*********************************************************************************************************************/
     /*                                              variables needed                                                     */
@@ -33,5 +35,7 @@ date : 25/10/2020
     /*********************************************************************************************************************/
 
         void connection_ask(manage_player *player, int sk);
+        void waiting_beging(int sk, manage_player *player);
+        void sendMove(SDL_Rect *current_pos, SDL_Rect *newPos, int *sk);
 
 #endif
