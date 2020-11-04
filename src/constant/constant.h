@@ -32,6 +32,14 @@ date : 25/10/2020
     #define WAITING     0x04
     #define MOVE        0x05
     #define TAKE        0x06
+    #define W           0x07
+    #define B           0x08
+    #define MOVEOK      0x09
+    #define MOVENOTOK   0x10
+    #define YOURTURN    0x11
+    #define TAKEOK      0x12
+    #define TAKENOTOK   0x13
+    #define YOURTURNAT  0x14
 
     #include <stdio.h>
     #include <stdlib.h>

@@ -22,6 +22,7 @@ date : 25/10/2020
 
         //local includes
         #include "../../constant/constant.h"
+        #include "../profil/profil.h"
 
         //SDL header
         #include <SDL/SDL.h>
@@ -48,7 +49,7 @@ date : 25/10/2020
         void InGame(SDL_Surface *screen, int tourjoueur);
         void initialiseBoard(manage_board *this);
         int validateSelect(manage_board *manBoard, SDL_Rect *position);
-        int validateTaken(manage_board *manBoard, SDL_Rect *pos);
+        void validateTaken(manage_board *manBoard, SDL_Rect *ancientpos, SDL_Rect *eaten, SDL_Rect *newPos, manage_player *player);
         void destroyBoard(manage_board *manBoardD);
 
 #endif

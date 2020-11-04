@@ -179,7 +179,6 @@ int handle_logIn(char *mrecv, int sk_accept, int nb_connection)
     if(mrecv[0] == REGISTRED)
     {
         mrecv[0] = CONNECTED;
-        //printf("CONNECTED : %d\n", mrecv[0]);
         mrecv[1] = nb_connection - 1; //PLAYER1, PLAYER2, VIEWER -> 0 to 2
         mrecv[2] = '\0';
         if((count = send(sk_accept, mrecv, sizeof(mrecv), 0)) == -1)
@@ -244,9 +243,87 @@ int launch_party(int *sk_accept)
 /************************************************************************************/
 /* purpose : Create new account                                                     */
 /************************************************************************************/
-int handle_turn()
+void handle_turn(int *sk_accept, board *manB)
 {
+    char buf[MAX] = {""};
+    char coords[MAX] = {""};
+    int status = 0;
+    int count = 0;
+    int continuer = TRUE;
+
+    pid_t son_pid;
     
+    while (continuer)
+    {
+        
+        son_pid = fork();
+        
+        switch(son_pid)
+        {
+            case -1:
+                perror("Error fork failure");
+                exit(EXIT_FAILURE);
+                break;
+            case 0:
+                puts("Serveur : Input info:>>>");
+                buf[0] = '\0';
+                if((count = recv(sk_accept[manB->color], buf, sizeof(buf), 0)) == -1)
+                {
+                    perror("Serveur : receive data failure : \n");
+                }
+                else 
+                {
+                    if(buf[0] == MOVE)
+                    {
+                        coords[0] = buf[1];
+                        coords[1] = buf[2];
+                        coords[2] = buf[3];
+                        coords[3] = buf[4];
+                        coords[4] = buf[5];
+
+                        if(checkMove(manB, coords))
+                        {
+                            sendValidateMove(4, coords, manB, sk_accept);
+                        }
+                        else
+                        {
+                            sendValidateMove(5, coords, manB, sk_accept);
+                        }
+                    }
+                    else if(buf[0] == TAKE)
+                    {
+                        coords[0] = buf[1];
+                        coords[1] = buf[2];
+                        coords[2] = buf[3];
+                        coords[3] = buf[4];
+                        coords[4] = buf[5];
+                        coords[5] = buf[6];
+                        coords[6] = buf[7];
+                        coords[7] = buf[8];
+
+                        if(checkTake(manB, coords))
+                        {
+                            sendValidateTake(4, coords, manB, sk_accept);
+                        }
+                        else
+                        {
+                            sendValidateTake(5, coords, manB, sk_accept);
+                        }
+
+                    }
+                    else if(strcmp(buf, "quit"))
+                    {
+                        exit(6);
+                    }
+
+                }
+                break;
+            default:
+                wait(&status);
+                continuer = handle_exitTurn(status, manB);
+        }
+    }
+
 }
 
 /************************************************************************************/
@@ -260,45 +337,323 @@ int handle_turn()
 int checkMove(board *manB, char *coords)
 {
     int bool = FALSE;
-    char tmp[2] = {""};
-    int current_x = 0;
-    int current_y = 0;
-    int new_x = 0;
-    int new_y = 0;
+    int current_x = coords[0];
+    int current_y = coords[1];
+    int new_x = coords[2];
+    int new_y = coords[3];
 
-    sprintf(tmp,"%c", coords[0]);
-    current_x = atoi(tmp);
-    tmp[0] = '\0';
-
-    sprintf(tmp,"%c", coords[1]);
-    current_y = atoi(tmp);
-    tmp[0] = '\0';
-
-    sprintf(tmp,"%c", coords[3]);
-    new_x = atoi(tmp);
-    tmp[0] = '\0';
-
-    sprintf(tmp,"%c", coords[4]);
-    new_y = atoi(tmp);
-    tmp[0] = '\0';
-
-    if((abs(current_x - new_x) == 1) && (abs(current_y - new_y) == 1))
+    if((current_x != 0) && (current_y != 0) && (new_x != 0) && (new_y != 0))
     {
-        //if(/**/ == PLAYER1)
-        /*{
-            bool = TRUE;
+        if((abs(current_x - new_x) == 1) && (abs(current_y - new_y) == 1)) //player had indeed move on one case to the left or to the right 
+        {
             manB->map_pawn[current_y][current_x] = EMPTY;
-            manB->map_pawn[new_y][new_x] = WHITE;
-        }*/
-        //else if(/**/ == PLAYER2)
-        /*{
+            switch(coords[4])
+            {
+                case W:
+                    manB->map_pawn[new_y][new_x] = WHITE;
+                    break;
+                case B:
+                    manB->map_pawn[new_y][new_x] = BLACK;
+                    break;
+            }
             bool = TRUE;
-            manB->map_pawn[current_y][current_x] = EMPTY;
-            manB->map_pawn[new_y][new_x] = BLACK;
-        }*/
-         
+            
+        }
+    }
+    else if((current_x == 0) && (abs(current_y - new_y) == 1))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        switch(coords[4])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
+    }
+    else if((new_x == 0) && (abs(current_y - new_y) == 1))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        switch(coords[4])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
+    }
+    else if((current_y == 0) && (abs(current_x - new_x) == 1))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        switch(coords[4])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
+    }
+    else if((new_y == 0) && (abs(current_x - new_x) == 1))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        switch(coords[4])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
     }
     return bool;
+}
+
+/************************************************************************************/
+/* function : checkTake                                                             */
+/************************************************************************************/
+/* Input : void                                                                     */
+/* Output : void                                                                    */
+/************************************************************************************/
+/* purpose : Create new account                                                     */
+/************************************************************************************/
+int checkTake(board *manB, char *coords)
+{
+    int bool = FALSE;
+    int current_x = coords[0];
+    int current_y = coords[1];
+    int new_x = coords[2];
+    int new_y = coords[3];
+    int eaten_x = coords[4];
+    int eaten_y = coords[5];
+    
+    if((current_x != 0) && (current_y != 0) && (new_x != 0) && (new_y != 0))
+    {
+        if((abs(current_x - new_x) == 2) && (abs(current_y - new_y) == 2)) //player had indeed move on one case to the left or to the right 
+        {
+            manB->map_pawn[current_y][current_x] = EMPTY;
+            manB->map_pawn[eaten_y][eaten_x] = EMPTY;
+            switch(coords[6])
+            {
+                case W:
+                    manB->map_pawn[new_y][new_x] = WHITE;
+                    break;
+                case B:
+                    manB->map_pawn[new_y][new_x] = BLACK;
+                    break;
+            }
+            bool = TRUE;
+            
+        }
+    }
+    else if((current_x == 0) && (abs(current_y - new_y) == 2))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        manB->map_pawn[eaten_y][eaten_x] = EMPTY;
+        switch(coords[6])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
+    }
+    else if((new_x == 0) && (abs(current_y - new_y) == 2))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        manB->map_pawn[eaten_y][eaten_x] = EMPTY;
+        switch(coords[6])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
+    }
+    else if((current_y == 0) && (abs(current_x - new_x) == 2))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        manB->map_pawn[eaten_y][eaten_x] = EMPTY;
+        switch(coords[6])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
+    }
+    else if((new_y == 0) && (abs(current_x - new_x) == 2))
+    {
+        manB->map_pawn[current_y][current_x] = EMPTY;
+        manB->map_pawn[eaten_y][eaten_x] = EMPTY;
+        switch(coords[6])
+        {
+            case W:
+                manB->map_pawn[new_y][new_x] = WHITE;
+                break;
+            case B:
+                manB->map_pawn[new_y][new_x] = BLACK;
+                break;
+        }
+        bool = TRUE;
+    }
+    return bool;
+}
+
+/************************************************************************************/
+/* function : sendValidateMove                                                             */
+/************************************************************************************/
+/* Input : void                                                                     */
+/* Output : void                                                                    */
+/************************************************************************************/
+/* purpose : Create new account                                                     */
+/************************************************************************************/
+void sendValidateMove(int exit_status, char *coords, board *manB, int *sk_accept)
+{
+    int count = 0;
+    int bool = FALSE;
+    char msg[MAX] = {""};
+    switch(exit_status)
+    {
+        case 4: //valide move
+            msg[0] = MOVEOK;
+            msg[1] = '\0';
+            if((count = send(sk_accept[manB->color], msg, sizeof(msg), 0)) == -1) //send to current player the end of his turn
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            switch(coords[4])
+            {
+                case W:
+                    manB->color = BLACK;
+                    break;
+                case B:
+                    manB->color = WHITE;
+                    break;
+            }
+            msg[0] = YOURTURN;
+            msg[1] = coords[0]; // current x
+            msg[2] = coords[1]; //current y
+            msg[3] = coords[2]; //new x
+            msg[4] = coords[3]; //new y
+            msg[5] = '\0';
+            if((count = send(sk_accept[manB->color], msg, sizeof(msg), 0)) == -1) //sent the new player to beging his turn
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            bool = TRUE;
+            break;
+        case 5:
+            msg[0] = MOVENOTOK;
+            msg[1] = '\0';
+            if((count = send(sk_accept[manB->color], msg, sizeof(msg), 0)) == -1) //send to current player the end of his turn
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            break;
+    }
+
+    if(bool)
+    {
+        exit(manB->color);
+    }
+    else
+    {
+        exit(exit_status);
+    }
+   
+}
+
+/************************************************************************************/
+/* function : sendValidateTake                                                             */
+/************************************************************************************/
+/* Input : void                                                                     */
+/* Output : void                                                                    */
+/************************************************************************************/
+/* purpose : Create new account                                                     */
+/************************************************************************************/
+void sendValidateTake(int exit_status, char *coords, board *manB, int *sk_accept)
+{
+    int count = 0;
+    int bool = FALSE;
+    char msg[MAX] = {""};
+    switch(exit_status)
+    {
+        case 4: //valide take
+            msg[0] = TAKEOK;
+            msg[1] = '\0';
+            if((count = send(sk_accept[manB->color], msg, sizeof(msg), 0)) == -1) //send to current player the end of his turn
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            switch(coords[6])
+            {
+                case W:
+                    manB->color = BLACK;
+                    break;
+                case B:
+                    manB->color = WHITE;
+                    break;
+            }
+            msg[0] = YOURTURNAT;
+            msg[1] = coords[0]; // current x
+            msg[2] = coords[1]; //current y
+            msg[3] = coords[2]; //new x
+            msg[4] = coords[3]; //new y
+            msg[5] = coords[4]; //eaten x
+            msg[6] = coords[5]; //eaten y
+            msg[7] = '\0';
+
+            if((count = send(sk_accept[manB->color], msg, sizeof(msg), 0)) == -1) //sent the new player to beging his turn
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            bool = TRUE;
+            break;
+        case 5:
+            msg[0] = TAKENOTOK;
+            msg[1] = '\0';
+            if((count = send(sk_accept[manB->color], msg, sizeof(msg), 0)) == -1) //send to current player the end of his turn
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            break;
+    }
+
+    if(bool)
+    {
+        exit(manB->color);
+    }
+    else
+    {
+        exit(exit_status);
+    }
+   
 }
 
 /************************************************************************************/
@@ -311,7 +666,7 @@ int checkMove(board *manB, char *coords)
 /************************************************************************************/
 int handle_exitStatus(int status)
 {
-    int bool; 
+    int bool = FALSE; 
     if(WEXITSTATUS(status) == 0) //the game is ended
     {
         bool = FALSE;
@@ -333,6 +688,48 @@ int handle_exitStatus(int status)
         puts("The game can now begin !");
         bool = TRUE;
     }
+
+    return bool;
+}
+
+/************************************************************************************/
+/* function : handle_exitTurn                                                     */
+/************************************************************************************/
+/* Input : void                                                                     */
+/* Output : void                                                                    */
+/************************************************************************************/
+/* purpose : Create new account                                                     */
+/************************************************************************************/
+int handle_exitTurn(int status, board *manB)
+{
+    int bool;
+    if((WEXITSTATUS(status) == BLACK) || (WEXITSTATUS(status) == WHITE))
+    {
+        puts("Correct move !");
+        switch(WEXITSTATUS(status))
+        {
+            case BLACK:
+                puts("Now it's the BLACK pawn to play");
+                manB->color = BLACK;
+                break;
+            case WHITE:
+                puts("Now it's the WHITE pawn to play");
+                manB->color = WHITE;
+                break;
+        }
+        bool = TRUE;
+    }
+    else if(WEXITSTATUS(status) == 5)
+    {
+        puts("Incorrect move !");
+        bool = TRUE;
+    }
+    else if(WEXITSTATUS(status) == 6)
+    {
+        puts("by !");
+        bool = FALSE;
+    }
+
     return bool;
 }
 
@@ -355,6 +752,7 @@ void initialize_map(board *manBoard)
     //initialise the double input table with size
     manBoard->height = NB_BLOCK_HEIGHT;
     manBoard->width = NB_BLOCK_WIDTH;
+    manBoard->color = WHITE;
     manBoard->map_pawn = malloc(manBoard->width * sizeof(int**));
     
     if(manBoard->map_pawn != NULL)

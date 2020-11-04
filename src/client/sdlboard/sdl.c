@@ -24,7 +24,7 @@ date : 31/10/2020
 /* purpose : this function initialise the map pawn at the beginning                 */
 /*                                                                                  */
 /************************************************************************************/
-SDL_Surface * sdlInit()
+SDL_Surface * sdlInit(manage_player *player)
 {
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -38,6 +38,26 @@ SDL_Surface * sdlInit()
     {
         fprintf(stderr, "Unable to launch video mode : %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
+    }
+
+    SDL_WM_SetIcon(IMG_Load("sdlboard/textures/board.png"), NULL);
+
+    char tmp[MAX] = {""};
+    strcat(tmp, player->name);
+    switch(player->which_one)
+    {
+        case PLAYER1:
+            strcat(tmp, "- PLAYER 1 - WHITE PAWN");
+            SDL_WM_SetCaption(tmp, NULL);
+            break;
+        case PLAYER2:
+            strcat(tmp, "- PLAYER 2 - BLACK PAWN");
+            SDL_WM_SetCaption(tmp, NULL);
+            break;
+        case VIEWER:
+            strcat(tmp, "- VIEWER");
+            SDL_WM_SetCaption(tmp, NULL);
+            break;
     }
 
     return screen;
@@ -147,7 +167,7 @@ void displayBoard(SDL_Surface *screen)
 /* purpose : the selector become a pawn if on it then don't                         */
 /*                                                                                  */
 /************************************************************************************/
-SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *ancientPos, SDL_Rect *newPos)
+SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *ancientPos, SDL_Rect *newPos, manage_player *player, SDL_Rect *eaten)
 {
     if((manBord == NULL) || posi == NULL)
     {
@@ -168,45 +188,37 @@ SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *ancient
         }
         else if(manBord->board_blackCase[posi->y][posi->x] != 0) // the selector is on brown case
         {
-            if(manBord->boardSDL[posi->y][posi->x] == BLACK) //the case is not empty and with a black paw
+            if((manBord->boardSDL[posi->y][posi->x] == BLACK) && (player->color == B))//the case is not empty and with a black paw
             {
                 manBord->selectIs = BLACK;
-                puts("isSelect = BLACK");
                 ancientPos->x = posi->x;
-                printf("ancientPos->x : %d\n", ancientPos->x);
                 ancientPos->y = posi->y;
-                printf("ancientPos->y : %d\n", ancientPos->y);
-                if((validateSelect(manBord, posi) == TRUE) || validateTaken(manBord, posi) == TRUE)
+                if((validateSelect(manBord, posi) == TRUE) )
                 {
                     newTexture = black_pawn;
-                  
-                    
+
                     manBord->boardSDL[posi->y][posi->x] = EMPTY;
                 }
                 else
                 {    
                     manBord->selectIs = EMPTY;
                 }
+                 
             }
-            else if(manBord->boardSDL[posi->y][posi->x] == WHITE) //the selector is on white pawn
+            else if((manBord->boardSDL[posi->y][posi->x] == WHITE) && (player->color == W)) //the selector is on white pawn
             {
                 manBord->selectIs = WHITE;
-                puts("isSelect = WHITE");
                  ancientPos->x = posi->x;
-                printf("ancientPos->x : %d\n", ancientPos->x);
                 ancientPos->y = posi->y;
-                printf("ancientPos->y : %d\n", ancientPos->y);
-                if((validateSelect(manBord, posi) == TRUE) || validateTaken(manBord, posi) == TRUE)
+                if((validateSelect(manBord, posi) == TRUE))
                 {
                     newTexture = white_pawn;
-                    
                     manBord->boardSDL[posi->y][posi->x] = EMPTY;
                 }
                 else
                 {
                     manBord->selectIs = EMPTY;
                 }
-
             }
             else if(manBord->boardSDL[posi->y][posi->x] == EMPTY)
             {
@@ -237,15 +249,17 @@ SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *ancient
             }
             else if(manBord->boardSDL[posi->y][posi->x] == EMPTY) //selector on empty 
             {
-                if((validateSelect(manBord, posi) == TRUE) || validateTaken(manBord, posi) == TRUE)
+                if((validateSelect(manBord, posi) == TRUE))
                 {
+                   
+                    
                     newTexture = black_square;
                 }
+                
                 manBord->selectIs = EMPTY;
                 newPos->x = posi->x;
-                printf("newPos->x : %d\n", newPos->x);
                 newPos->y = posi->y;
-                printf("newPos->y : %d\n", newPos->y);
+                validateTaken(manBord, ancientPos, eaten, newPos, player);
                 manBord->boardSDL[posi->y][posi->x] = BLACK;
 
             }
@@ -277,15 +291,14 @@ SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *ancient
             else if(manBord->boardSDL[posi->y][posi->x] == EMPTY) //selector on empty 
             {
                 
-                if((validateSelect(manBord, posi) == TRUE) || validateTaken(manBord, posi) == TRUE)
+                if((validateSelect(manBord, posi) == TRUE))
                 {
                    newTexture = black_square;
                 }
                 manBord->selectIs = EMPTY;
                 newPos->x = posi->x;
-                printf("newPos->x : %d\n", newPos->x);
                 newPos->y = posi->y;
-                printf("newPos->y : %d\n", newPos->y);
+                validateTaken(manBord, ancientPos, eaten, newPos, player);
                 manBord->boardSDL[posi->y][posi->x] = WHITE;
             }
         }
@@ -344,7 +357,7 @@ void moveSelector(SDL_Rect *pos, int direction)
 /************************************************************************************/
 /* purpose : this function display the pawn selector                                */
 /************************************************************************************/
-int handle_event(manage_player *player, SDL_Rect *position_selector, manage_board *my_manBoard, SDL_Surface **select_pawn, SDL_Rect *ancientPos, SDL_Rect *newPos)
+int handle_event(manage_player *player, SDL_Rect *position_selector, manage_board *my_manBoard, SDL_Surface **select_pawn, SDL_Rect *ancientPos, SDL_Rect *newPos, SDL_Rect *eaten)
 {
     SDL_Event       event;
     int bool = TRUE;
@@ -375,7 +388,7 @@ int handle_event(manage_player *player, SDL_Rect *position_selector, manage_boar
                         moveSelector(position_selector, RIGHT);
                         break;
                     case SDLK_SPACE:
-                        *select_pawn = selectPawn(my_manBoard, position_selector, ancientPos, newPos);
+                        *select_pawn = selectPawn(my_manBoard, position_selector, ancientPos, newPos, player, eaten);
                         break;
                     default:
                         break;

@@ -41,6 +41,7 @@ date : 28/10/2020
             int     isRegistred;
             int     which_one;
             int     isConnected;
+            char    color;
         } manage_player;
 
         

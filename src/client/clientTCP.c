@@ -54,9 +54,9 @@ int main(int argc, char *argv[])
 
     connection_ask(player, sk);
 
-    //waiting_beging(sk, player);
+    waiting_beging(sk, player);
 
-    SDL_Surface *screen = sdlInit();
+    SDL_Surface *screen = sdlInit(player);
 
     initTexture();
     SDL_Surface *select_pawn = getSelector();
@@ -70,13 +70,16 @@ int main(int argc, char *argv[])
     SDL_Rect localisation;
     SDL_Rect ancientPos;
     SDL_Rect newPos;
+    SDL_Rect eaten;
     position_selector.x = 0;
     position_selector.y = 0;
     ancientPos.x = 0;
     ancientPos.y = 0;
     newPos.x = 0;
     newPos.y = 0;
-    
+    eaten.x = 0;
+    eaten.y = 0;
+
     displayBoard(screen);
     updateMapPawn(screen, my_manBoard);
     SDL_Flip(screen);
@@ -85,23 +88,36 @@ int main(int argc, char *argv[])
 
     while(continuer)
     {
-        continuer = handle_event(player, &position_selector, my_manBoard, &select_pawn, &ancientPos, &newPos);
+        continuer = handle_event(player, &position_selector, my_manBoard, &select_pawn, &ancientPos, &newPos, &eaten);
         displayBoard(screen);
         localisation.x = position_selector.x * BLOCK_SIZE;
         localisation.y = position_selector.y * BLOCK_SIZE;
         SDL_BlitSurface(select_pawn, NULL, screen, &localisation);
         if(player->which_one == PLAYER1)
         {
-            if((ancientPos.x != 0) && (ancientPos.y != 0))
+            if((ancientPos.x != 0) || (ancientPos.y != 0))
             {
-                sendMove(&ancientPos, &newPos, &sk);
-                ancientPos.x = 0;
-                ancientPos.y = 0;
-                newPos.x = 0;
-                newPos.y = 0;
-            }
-            
+                if((newPos.x != 0) || (newPos.y != 0))
+                {
+                    sendMove(&ancientPos, &newPos, &sk, player, &eaten);
+                    ancientPos.x = 0;
+                    ancientPos.y = 0;
+                    newPos.x = 0;
+                    newPos.y = 0;
+                    position_selector.x = 0;
+                    position_selector.y = 0;
+                    eaten.x = 0;
+                    eaten.y = 0;
+                    waitValidate(sk, player);
+                }
+                
+            } 
         }
+        if((player->which_one == PLAYER2) || (player->which_one == VIEWER))
+        {
+            confirmTurn(sk, player, my_manBoard);
+        }
+
         updateMapPawn(screen, my_manBoard);
         SDL_Flip(screen);
     }

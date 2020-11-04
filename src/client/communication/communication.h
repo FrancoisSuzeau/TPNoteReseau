@@ -36,6 +36,8 @@ date : 25/10/2020
 
         void connection_ask(manage_player *player, int sk);
         void waiting_beging(int sk, manage_player *player);
-        void sendMove(SDL_Rect *current_pos, SDL_Rect *newPos, int *sk);
+        void sendMove(SDL_Rect *current_pos, SDL_Rect *newPos, int *sk, manage_player *player, SDL_Rect *eaten);
+        void waitValidate(int sk, manage_player *player);
+        void confirmTurn(int sk, manage_player *player, manage_board *manB);
 
 #endif

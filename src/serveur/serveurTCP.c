@@ -50,6 +50,8 @@ int main(int argc, char *argv[], char ** arge)
     handle_connection(&sk, &connect_fd, sk_accept, &cli, &add_size);
 
     launch_party(sk_accept);
+
+    handle_turn(sk_accept, my_manBoard);
  
     shutdown(sk_accept[0], sk);
     shutdown(sk_accept[1], sk);

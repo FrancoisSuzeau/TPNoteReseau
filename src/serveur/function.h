@@ -47,6 +47,7 @@ date : 28/10/2020
             int     **map_pawn;
             int     width;
             int     height;
+            int    color;
         } board;
 
     /*********************************************************************************************************************/
@@ -60,6 +61,10 @@ date : 28/10/2020
         int handle_logIn(char *mrecv, int sk_accept, int nb_connection);
         int launch_party(int *sk_accept);
         int handle_exitStatus(int status);
-        //int handle_turn(char *mrcv, int s_accept, board *manB);
-
+        void handle_turn(int *sk_accept, board *manB);
+        int checkMove(board *manB, char *coords);
+        int checkTake(board *manB, char *coords);
+        void sendValidateMove(int exit_status, char *coords, board *manB, int *sk_accept);
+        void sendValidateTake(int exit_status, char *coords, board *manB, int *sk_accept);
+        int handle_exitTurn(int status, board *manB);
 #endif
