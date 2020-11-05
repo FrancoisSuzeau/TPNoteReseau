@@ -35,21 +35,25 @@ date : 25/10/2020
 
         typedef struct manage_board {
 
-            int     **boardSDL;
-            int     **board_blackCase;
-            int     width;   //even if it's a square board i use different variable name to find myself in my program (in for loop for example) 
+            int     **boardSDL; //the board used by sdl where the pawns are
+            int     **board_blackCase; // the board of black case use to verify if the selecteur can drop a pawn at the coordonate or no (white case)
+            int     width;   //even if it's a square board i use different variable name to find myself in my program (for loop for example) 
             int     height;
-            int     selectIs;
+            int     selectIs; // to if the selector had select a pawn or not and which one
 
         } manage_board;
 
     /*********************************************************************************************************************/
     /*                                                  prototypes                                                       */
     /*********************************************************************************************************************/
-        void InGame(SDL_Surface *screen, int tourjoueur);
-        void initialiseBoard(manage_board *this);
-        int validateSelect(manage_board *manBoard, SDL_Rect *position);
-        void validateTaken(manage_board *manBoard, SDL_Rect *ancientpos, SDL_Rect *eaten, SDL_Rect *newPos, manage_player *player);
-        void destroyBoard(manage_board *manBoardD);
+        void    InGame(SDL_Surface *screen, int tourjoueur);
+
+        void    initialiseBoard(manage_board *this);
+
+        int     validateSelect(manage_board *manBoard, SDL_Rect *position);
+
+        void    validateTaken(manage_board *manBoard, SDL_Rect *ancientpos, SDL_Rect *eaten, SDL_Rect *newPos, manage_player *player);
+
+        void    destroyBoard(manage_board *manBoardD);
 
 #endif

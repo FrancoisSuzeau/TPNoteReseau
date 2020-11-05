@@ -14,10 +14,11 @@ date : 28/10/2020
 /************************************************************************************/
 /* function : create_account                                                        */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : char *, int                                                              */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : This function is call by serveur. Create new account in the file       */
+/* corresponding to the connection order of the client                              */
 /************************************************************************************/
 void create_account(char *name, int num_file)
 {
@@ -67,10 +68,12 @@ void create_account(char *name, int num_file)
 /************************************************************************************/
 /* function : handle_connection                                                     */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : int * x3, struct sockaddr_in *, struct socklen_t *                       */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by serveur. It in charge of control the connection*/
+/* to the server and the logs of the player. Add a third connection socket for the  */
+/* viewer if the players want to.                                                   */
 /************************************************************************************/
 void handle_connection(int *sk, int *connect_fd, int *sk_accept, struct sockaddr_in *cli, socklen_t *add_size)
 {
@@ -159,7 +162,6 @@ void handle_connection(int *sk, int *connect_fd, int *sk_accept, struct sockaddr
             default:
                 wait(&status);
                 continuer = handle_exitStatus(status);
-                
         }
     }
 
@@ -168,10 +170,11 @@ void handle_connection(int *sk, int *connect_fd, int *sk_accept, struct sockaddr
 /************************************************************************************/
 /* function : handle_logIn                                                          */
 /************************************************************************************/
-/* Input : void                                                                     */
-/* Output : void                                                                    */
+/* Input : char *, int x2                                                           */
+/* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server. It handle the connection status of the*/
+/* player and tell him he is connected                                              */
 /************************************************************************************/
 int handle_logIn(char *mrecv, int sk_accept, int nb_connection)
 {
@@ -205,10 +208,11 @@ int handle_logIn(char *mrecv, int sk_accept, int nb_connection)
 /************************************************************************************/
 /* function : launch_party                                                          */
 /************************************************************************************/
-/* Input : void                                                                     */
-/* Output : void                                                                    */
+/* Input : int *                                                                    */
+/* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server. When it call, it send to all client   */
+/* connected to launch the party and the graphic interface                          */
 /************************************************************************************/
 int launch_party(int *sk_accept)
 {
@@ -218,7 +222,7 @@ int launch_party(int *sk_accept)
     {
         switch(sk_accept[i])
         {
-            case 0:
+            case 0: // connection socket (viewer client) does not exist
                 break;
             default:
                 buf[0] = CANPLAY;
@@ -238,10 +242,12 @@ int launch_party(int *sk_accept)
 /************************************************************************************/
 /* function : handle_turn                                                           */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : int *, board *                                                           */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server. It handle all a party turn by turn.   */
+/* it handle the receive move and send the validate or not also the order to begin  */
+/* a turn                                                                           */
 /************************************************************************************/
 void handle_turn(int *sk_accept, board *manB)
 {
@@ -275,11 +281,11 @@ void handle_turn(int *sk_accept, board *manB)
                 {
                     if(buf[0] == MOVE)
                     {
-                        coords[0] = buf[1];
-                        coords[1] = buf[2];
-                        coords[2] = buf[3];
-                        coords[3] = buf[4];
-                        coords[4] = buf[5];
+                        coords[0] = buf[1]; // ancient_x
+                        coords[1] = buf[2]; // ancient_y
+                        coords[2] = buf[3]; // new_x
+                        coords[3] = buf[4]; // new_y
+                        coords[4] = buf[5]; // color
 
                         if(checkMove(manB, coords))
                         {
@@ -292,17 +298,17 @@ void handle_turn(int *sk_accept, board *manB)
                     }
                     else if(buf[0] == TAKE)
                     {
-                        coords[0] = buf[1];
-                        coords[1] = buf[2];
-                        coords[2] = buf[3];
-                        coords[3] = buf[4];
-                        coords[4] = buf[5];
-                        coords[5] = buf[6];
-                        coords[6] = buf[7];
-                        coords[7] = buf[8];
+                        coords[0] = buf[1]; // ancient_x
+                        coords[1] = buf[2]; // ancient_y
+                        coords[2] = buf[3]; // new_x
+                        coords[3] = buf[4]; // new_y
+                        coords[4] = buf[5]; // eaten_x
+                        coords[5] = buf[6]; // eaten_y
+                        coords[6] = buf[7]; // color
 
                         if(checkTake(manB, coords))
                         {
+                            sendEndGame(manB, sk_accept);
                             sendValidateTake(4, coords, manB, sk_accept);
                         }
                         else
@@ -311,9 +317,9 @@ void handle_turn(int *sk_accept, board *manB)
                         }
 
                     }
-                    else if(strcmp(buf, "quit"))
+                    else if(buf[0] == QUIT)
                     {
-                        exit(6);
+                        sendFinalQuit(sk_accept, buf);
                     }
 
                 }
@@ -329,10 +335,11 @@ void handle_turn(int *sk_accept, board *manB)
 /************************************************************************************/
 /* function : checkMove                                                             */
 /************************************************************************************/
-/* Input : void                                                                     */
-/* Output : void                                                                    */
+/* Input : board *, char *                                                          */
+/* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server and by the son process validate the move*/
+/* or not return TRUE if good or FALSE if not                                       */
 /************************************************************************************/
 int checkMove(board *manB, char *coords)
 {
@@ -422,10 +429,11 @@ int checkMove(board *manB, char *coords)
 /************************************************************************************/
 /* function : checkTake                                                             */
 /************************************************************************************/
-/* Input : void                                                                     */
-/* Output : void                                                                    */
+/* Input : board *, char *                                                          */
+/* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by serveur and by the son process, and do the same*/ 
+/* things as checkMove but for a take                                               */
 /************************************************************************************/
 int checkTake(board *manB, char *coords)
 {
@@ -439,7 +447,7 @@ int checkTake(board *manB, char *coords)
     
     if((current_x != 0) && (current_y != 0) && (new_x != 0) && (new_y != 0))
     {
-        if((abs(current_x - new_x) == 2) && (abs(current_y - new_y) == 2)) //player had indeed move on one case to the left or to the right 
+        if((abs(current_x - new_x) == 2) && (abs(current_y - new_y) == 2)) //player had indeed move on two case to the left or to the right 
         {
             manB->map_pawn[current_y][current_x] = EMPTY;
             manB->map_pawn[eaten_y][eaten_x] = EMPTY;
@@ -447,9 +455,11 @@ int checkTake(board *manB, char *coords)
             {
                 case W:
                     manB->map_pawn[new_y][new_x] = WHITE;
+                    manB->black_pawn_left--;
                     break;
                 case B:
                     manB->map_pawn[new_y][new_x] = BLACK;
+                    manB->white_pawn_left--;
                     break;
             }
             bool = TRUE;
@@ -464,9 +474,11 @@ int checkTake(board *manB, char *coords)
         {
             case W:
                 manB->map_pawn[new_y][new_x] = WHITE;
+                manB->black_pawn_left--;
                 break;
             case B:
                 manB->map_pawn[new_y][new_x] = BLACK;
+                manB->white_pawn_left--;
                 break;
         }
         bool = TRUE;
@@ -479,9 +491,11 @@ int checkTake(board *manB, char *coords)
         {
             case W:
                 manB->map_pawn[new_y][new_x] = WHITE;
+                manB->black_pawn_left--;
                 break;
             case B:
                 manB->map_pawn[new_y][new_x] = BLACK;
+                manB->white_pawn_left--;
                 break;
         }
         bool = TRUE;
@@ -494,9 +508,11 @@ int checkTake(board *manB, char *coords)
         {
             case W:
                 manB->map_pawn[new_y][new_x] = WHITE;
+                manB->black_pawn_left--;
                 break;
             case B:
                 manB->map_pawn[new_y][new_x] = BLACK;
+                manB->white_pawn_left--;
                 break;
         }
         bool = TRUE;
@@ -509,9 +525,11 @@ int checkTake(board *manB, char *coords)
         {
             case W:
                 manB->map_pawn[new_y][new_x] = WHITE;
+                manB->black_pawn_left--;
                 break;
             case B:
                 manB->map_pawn[new_y][new_x] = BLACK;
+                manB->white_pawn_left--;
                 break;
         }
         bool = TRUE;
@@ -520,12 +538,61 @@ int checkTake(board *manB, char *coords)
 }
 
 /************************************************************************************/
-/* function : sendValidateMove                                                             */
+/* function : sendFinalQuit                                                         */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : int *, char *msg                                                         */
+/* Output :                                                                         */
+/************************************************************************************/
+/* purpose : this function is call by server and by the son process, the return is  */
+/* a status of exit for the father. it send a message of quit to a player due to a  */
+/* leave of the other player                                                        */
+/************************************************************************************/
+void sendFinalQuit(int *sk_accept, char *msg)
+{
+    int count = 0;
+    char tmp[MAX] = {""};
+    tmp[0] = QUIT;
+    tmp[1] = '\0';
+    switch(msg[1])
+    {
+        case W:
+            if((count = send(sk_accept[1], tmp, sizeof(tmp), 0)) == -1)
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                puts("Send quit to black");
+            }
+            
+            break;
+        case B:
+            if((count = send(sk_accept[0], tmp, sizeof(tmp), 0)) == -1)
+            {
+                perror("serveur : send data failure : ");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                puts("Send quit to white");
+            }
+            
+            break;
+    }
+
+    exit(6);
+}
+
+/************************************************************************************/
+/* function : sendValidateMove                                                      */
+/************************************************************************************/
+/* Input : int, int *, char *, board *                                              */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server and by the son process, the return of  */
+/* checkMove say if it send validate (and to the other client to begin his turn) or */
+/* not                                                                              */
 /************************************************************************************/
 void sendValidateMove(int exit_status, char *coords, board *manB, int *sk_accept)
 {
@@ -585,14 +652,69 @@ void sendValidateMove(int exit_status, char *coords, board *manB, int *sk_accept
     }
    
 }
-
 /************************************************************************************/
-/* function : sendValidateTake                                                             */
+/* function : sendEndGame                                                           */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : board *, int *                                                           */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server and by the son process.                */
+/* look if there is nomore pawn in one color. If yes say it to the winner and the   */
+/* looser                                                                           */
+/************************************************************************************/
+void sendEndGame(board *manB, int *sk_accept)
+{
+    char msg[MAX] = {""};
+    int count = 0;
+    if(manB->black_pawn_left == 0) // white win and black loose
+    {
+        msg[0] = YOUWIN;
+        msg[1] = '\0';
+        if((count = send(sk_accept[0], msg, sizeof(msg), 0)) == -1)
+        {
+            perror("serveur : send data failure : ");
+            exit(EXIT_FAILURE);
+        }
+
+        msg[0] = YOULOOSE;
+        msg[1] = '\0';
+        if((count = send(sk_accept[1], msg, sizeof(msg), 0)) == -1) //send to current player the end of his turn
+        {
+            perror("serveur : send data failure : ");
+            exit(EXIT_FAILURE);
+        }
+        exit(7);
+    }
+    else if(manB->white_pawn_left == 0) // black win and white loose
+    {
+        msg[0] = YOUWIN;
+        msg[1] = '\0';
+        if((count = send(sk_accept[1], msg, sizeof(msg), 0)) == -1)
+        {
+            perror("serveur : send data failure : ");
+            exit(EXIT_FAILURE);
+        }
+
+        msg[0] = YOULOOSE;
+        msg[1] = '\0';
+        if((count = send(sk_accept[0], msg, sizeof(msg), 0)) == -1) //send to current player the end of his turn
+        {
+            perror("serveur : send data failure : ");
+            exit(EXIT_FAILURE);
+        }
+        exit(8);
+    }
+
+}
+
+/************************************************************************************/
+/* function : sendValidateTake                                                      */
+/************************************************************************************/
+/* Input : int, char *, board *, int *                                              */
+/* Output : void                                                                    */
+/************************************************************************************/
+/* purpose : this function is call by server and by the son process.                */
+/* Do the same as sendValidateMove but for a take and with the return of checkTake  */
 /************************************************************************************/
 void sendValidateTake(int exit_status, char *coords, board *manB, int *sk_accept)
 {
@@ -659,10 +781,12 @@ void sendValidateTake(int exit_status, char *coords, board *manB, int *sk_accept
 /************************************************************************************/
 /* function : handle_exitStatus                                                     */
 /************************************************************************************/
-/* Input : void                                                                     */
-/* Output : void                                                                    */
+/* Input : int                                                                      */
+/* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server and by the father process to verify the*/
+/* status of the end of the son process. return TRUE to continue the mother function*/
+/* or false if stop                                                                 */
 /************************************************************************************/
 int handle_exitStatus(int status)
 {
@@ -693,12 +817,14 @@ int handle_exitStatus(int status)
 }
 
 /************************************************************************************/
-/* function : handle_exitTurn                                                     */
+/* function : handle_exitTurn                                                       */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : int, board *                                                             */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server and by the father process. It is like  */
+/* handle_exitStatus but change the index use for the connect socket tab if it is the*/
+/* end of this turn and the beginning of new one                                    */
 /************************************************************************************/
 int handle_exitTurn(int status, board *manB)
 {
@@ -729,17 +855,27 @@ int handle_exitTurn(int status, board *manB)
         puts("by !");
         bool = FALSE;
     }
-
+    else if(WEXITSTATUS(status) == 7)
+    {
+        puts("White pawn have win ! Congrats !");
+        bool = FALSE;
+    }
+    else if(WEXITSTATUS(status) == 8)
+    {
+        puts("Black pawn have win ! Congrats !");
+        bool = FALSE;
+    }
     return bool;
 }
 
 /************************************************************************************/
 /* function : initialise_map                                                        */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : board *                                                                  */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server and initialise all the component of the*/
+/* board structure                                                                  */
 /************************************************************************************/
 void initialize_map(board *manBoard)
 {
@@ -753,6 +889,8 @@ void initialize_map(board *manBoard)
     manBoard->height = NB_BLOCK_HEIGHT;
     manBoard->width = NB_BLOCK_WIDTH;
     manBoard->color = WHITE;
+    manBoard->white_pawn_left = 20;
+    manBoard->black_pawn_left = 20;
     manBoard->map_pawn = malloc(manBoard->width * sizeof(int**));
     
     if(manBoard->map_pawn != NULL)
@@ -840,10 +978,10 @@ void initialize_map(board *manBoard)
 /************************************************************************************/
 /* function : destroy_map                                                           */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : board *                                                                  */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : Create new account                                                     */
+/* purpose : this function is call by server. Release the memory                    */
 /************************************************************************************/
 void destroy_map(board *manBoard)
 {

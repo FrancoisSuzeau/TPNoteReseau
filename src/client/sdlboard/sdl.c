@@ -1,6 +1,7 @@
-/*namefile : communication.c
+/*namefile : sdl.c
 
-purpose : src file for module draught_game where all signature of function are for this module
+purpose : src file for module sdl where all signature of function are for this module
+            to display the rendering all along the game
 
 created by : Francois Suzeau
 
@@ -16,13 +17,13 @@ date : 31/10/2020
     static SDL_Surface *black_square = NULL;
 
 /************************************************************************************/
-/* function : initialiseBoard                                                       */
+/* function : sdlInit                                                               */
 /************************************************************************************/
-/* Input : manage_board *                                                           */
-/* Output : void                                                                    */
+/* Input : manage_player *                                                          */
+/* Output : SDL_Surface *                                                           */
 /************************************************************************************/
-/* purpose : this function initialise the map pawn at the beginning                 */
-/*                                                                                  */
+/* purpose : this function is call by client to initialize the SDL componnent and   */
+/* the display window. Return the pointer of this window                            */
 /************************************************************************************/
 SDL_Surface * sdlInit(manage_player *player)
 {
@@ -69,7 +70,7 @@ SDL_Surface * sdlInit(manage_player *player)
 /* Input : void                                                                     */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : create the file for each player capabilities                           */
+/* purpose : this function is call by client. initialise the texture of the game.   */
 /************************************************************************************/
 void initTexture()
 {
@@ -96,13 +97,13 @@ void initTexture()
 }
 
 /************************************************************************************/
-/* function : displayPawn                                                           */
+/* function : updateMapPawn                                                         */
 /************************************************************************************/
-/* Input : SDL_Surface * x2, SDL_Rect *                                             */
+/* Input : SDL_Surface *                                                            */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : this function display one pawn at a position                           */
-/*                                                                                  */
+/* purpose : this function is call by client. This function display all pawn at a   */
+/* position                                                                         */
 /************************************************************************************/
 void updateMapPawn(SDL_Surface *screen, manage_board *man_mapPawn)
 {
@@ -136,11 +137,11 @@ void updateMapPawn(SDL_Surface *screen, manage_board *man_mapPawn)
 /************************************************************************************/
 /* function : displayBoard                                                          */
 /************************************************************************************/
-/* Input : SDL_Surface * x2                                                         */
+/* Input : SDL_Surface *                                                            */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : this function display the boardSDL and all of the variable             */
-/* we need in it                                                                    */
+/* purpose : this function is call by client. Display the window and the texture of */
+/* the board                                                                        */
 /************************************************************************************/
 void displayBoard(SDL_Surface *screen)
 {
@@ -161,11 +162,12 @@ void displayBoard(SDL_Surface *screen)
 /************************************************************************************/
 /* function : selectPawn                                                            */
 /************************************************************************************/
-/* Input : manage_board *, SDL_Rect *                                               */
+/* Input : manage_board *, SDL_Rect * x4, manage_player *                           */
 /* Output : SDL_Surface *                                                           */
 /************************************************************************************/
-/* purpose : the selector become a pawn if on it then don't                         */
-/*                                                                                  */
+/* purpose : this function is call by client. At this point the selector is a black */
+/* square, and this function verifying if the player had select a valid pawn.       */
+/* if yes the selector became the pawn selected                                     */
 /************************************************************************************/
 SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *ancientPos, SDL_Rect *newPos, manage_player *player, SDL_Rect *eaten)
 {
@@ -307,12 +309,13 @@ SDL_Surface *selectPawn(manage_board *manBord, SDL_Rect *posi, SDL_Rect *ancient
 }
 
 /************************************************************************************/
-/* function : moveSelector                                                       */
+/* function : moveSelector                                                          */
 /************************************************************************************/
 /* Input : int, SDL_Rect *                                                          */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : this function display the pawn selector                                */
+/* purpose : this function is call by client. This function display the move of the */
+/* selector                                                                         */
 /************************************************************************************/
 void moveSelector(SDL_Rect *pos, int direction)
 {
@@ -350,12 +353,15 @@ void moveSelector(SDL_Rect *pos, int direction)
 }
 
 /************************************************************************************/
-/* function : moveSelector                                                          */
+/* function : handle_event                                                          */
 /************************************************************************************/
-/* Input : int, SDL_Rect *                                                          */
-/* Output : void                                                                    */
+/* Input : manage_player *, SDL_Rect * x4, manage_board *                           */
+/* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : this function display the pawn selector                                */
+/* purpose : this function is call by client. With key event like directionnal key  */
+/* it call a function to change the coordonnate of the selector. if SPACE key       */
+/* it call the select pawn function. It return a boolean TRUE or FALSE if the player*/
+/* want to quit the graphique interface                                             */
 /************************************************************************************/
 int handle_event(manage_player *player, SDL_Rect *position_selector, manage_board *my_manBoard, SDL_Surface **select_pawn, SDL_Rect *ancientPos, SDL_Rect *newPos, SDL_Rect *eaten)
 {
@@ -426,7 +432,7 @@ int handle_event(manage_player *player, SDL_Rect *position_selector, manage_boar
 /* Input : void                                                                     */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : create the file for each player capabilities                           */
+/* purpose : this function is call by client. All texture are freed                 */
 /************************************************************************************/
 void freeTexture()
 {
@@ -436,6 +442,15 @@ void freeTexture()
     SDL_FreeSurface(img_board);
 }
 
+/************************************************************************************/
+/* function : getSelector                                                           */
+/************************************************************************************/
+/* Input : void                                                                     */
+/* Output : SDL_Surface *                                                           */
+/************************************************************************************/
+/* purpose : this function is call by client in module draught game. It's a getter  */
+/* just like in OOP                                                                 */
+/************************************************************************************/
 SDL_Surface *getSelector()
 {
     return black_square;

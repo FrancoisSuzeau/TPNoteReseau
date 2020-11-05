@@ -12,12 +12,13 @@ date : 28/10/2020
 
 
 /************************************************************************************/
-/* function : createFile                                                           */
+/* function : createFile                                                            */
 /************************************************************************************/
-/* Input : void                                                                     */
-/* Output : void                                                                    */
+/* Input : manage_player *                                                          */
+/* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : create the file for each player capabilities                           */
+/* purpose : this function is call by client in module communication. Create a      */
+/* file for each player and verifing if the player is known                         */
 /************************************************************************************/
 int readDataBase(manage_player *player)
 {
@@ -83,10 +84,11 @@ int readDataBase(manage_player *player)
 /************************************************************************************/
 /* function : logIn                                                                 */
 /************************************************************************************/
-/* Input : void                                                                     */
+/* Input : manage_player *                                                          */
 /* Output : void                                                                    */
 /************************************************************************************/
-/* purpose : create the file for each player capabilities                           */
+/* purpose : this function is call by client in module communication.               */
+/* at this point the player write his name and this function record it              */
 /************************************************************************************/
 void logIn(manage_player *player)
 {

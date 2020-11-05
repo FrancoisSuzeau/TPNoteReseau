@@ -47,24 +47,41 @@ date : 28/10/2020
             int     **map_pawn;
             int     width;
             int     height;
-            int    color;
+            int     color;
+            int     white_pawn_left;
+            int     black_pawn_left;
         } board;
 
     /*********************************************************************************************************************/
     /*                                                  prototypes                                                       */
     /*********************************************************************************************************************/
-        void initialize_map(board *manBoard);
-        void destroy_map(board *manBoard);
+        void    initialize_map(board *manBoard);
 
-        void create_account(char *name, int num_file);
-        void handle_connection(int *sk, int *connect_fd, int *sk_accept, struct sockaddr_in *cli, socklen_t *add_size);
-        int handle_logIn(char *mrecv, int sk_accept, int nb_connection);
-        int launch_party(int *sk_accept);
-        int handle_exitStatus(int status);
-        void handle_turn(int *sk_accept, board *manB);
-        int checkMove(board *manB, char *coords);
-        int checkTake(board *manB, char *coords);
-        void sendValidateMove(int exit_status, char *coords, board *manB, int *sk_accept);
-        void sendValidateTake(int exit_status, char *coords, board *manB, int *sk_accept);
-        int handle_exitTurn(int status, board *manB);
+        void    destroy_map(board *manBoard);
+
+        void    create_account(char *name, int num_file);
+
+        void    handle_connection(int *sk, int *connect_fd, int *sk_accept, struct sockaddr_in *cli, socklen_t *add_size);
+
+        int     handle_logIn(char *mrecv, int sk_accept, int nb_connection);
+
+        int     launch_party(int *sk_accept);
+        
+        int     handle_exitStatus(int status);
+        
+        void    handle_turn(int *sk_accept, board *manB);
+        
+        int     checkMove(board *manB, char *coords);
+        
+        int     checkTake(board *manB, char *coords);
+        
+        void    sendValidateMove(int exit_status, char *coords, board *manB, int *sk_accept);
+        
+        void    sendValidateTake(int exit_status, char *coords, board *manB, int *sk_accept);
+        
+        int     handle_exitTurn(int status, board *manB);
+
+        void    sendEndGame(board *manB, int *sk_accept);
+
+        void    sendFinalQuit(int *sk_accept, char *msg);
 #endif

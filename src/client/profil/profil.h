@@ -1,6 +1,6 @@
 /*namefile : profil.h
 
-purpose : headerfile for module draught_game
+purpose : headerfile for module profil
 
 created by : Francois Suzeau
 
@@ -37,21 +37,20 @@ date : 28/10/2020
     /*                                              variables needed                                                     */
     /*********************************************************************************************************************/
         typedef struct manage_player {
-            char    name[MAX];
-            int     isRegistred;
-            int     which_one;
-            int     isConnected;
-            char    color;
+            char    name[MAX]; //the name of the player
+            int     isRegistred; // confirm by function readDatabase
+            int     which_one; // use to tell if it's the turn to play or to wait
+            int     isConnected; //used after confirmation by serveur
+            char    color; // the color play by the player
         } manage_player;
-
-        
 
     /*********************************************************************************************************************/
     /*                                                  prototypes                                                       */
     /*********************************************************************************************************************/
 
-        int readDataBase(manage_player *player);
-        void logIn(manage_player *player);
+        int     readDataBase(manage_player *player);
+
+        void    logIn(manage_player *player);
 
 
 #endif

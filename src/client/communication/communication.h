@@ -1,6 +1,6 @@
 /*namefile : communication.h
 
-purpose : header file for module draught_game
+purpose : header file for module communication
 
 created by : Francois Suzeau
 
@@ -34,10 +34,16 @@ date : 25/10/2020
     /*                                                  prototypes                                                       */
     /*********************************************************************************************************************/
 
-        void connection_ask(manage_player *player, int sk);
-        void waiting_beging(int sk, manage_player *player);
-        void sendMove(SDL_Rect *current_pos, SDL_Rect *newPos, int *sk, manage_player *player, SDL_Rect *eaten);
-        void waitValidate(int sk, manage_player *player);
-        void confirmTurn(int sk, manage_player *player, manage_board *manB);
+        void    connection_ask(manage_player *player, int sk);
+
+        void    waiting_beging(int sk, manage_player *player);
+
+        void    sendMove(SDL_Rect *current_pos, SDL_Rect *newPos, int *sk, manage_player *player, SDL_Rect *eaten);
+
+        int     waitValidate(int sk, manage_player *player);
+
+        int     confirmTurn(int sk, manage_player *player, manage_board *manB);
+
+        void    sendQuit(int *sk, manage_player *player);
 
 #endif

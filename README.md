@@ -18,6 +18,8 @@ Si le message " make: rien a faire pour "all" " apparait mettez un commentaire q
 
 * Si vous n'êtes pas enregister alors le client (et attent la création du compte) le signal au serveur et ce derniers vous enregistre dans la base de donnée (le fichier). Il vous mets aussi en attente par la suite.
 
+* Il faut ouvrir une deuxième terminal et relancer le programme client et répeter les étapes d'avant.
+
 * Une fois un deuxième joueur connectée le serveur demande si l'on souhaite avoir un spectateur (pour l'instant il faut choisir 2 car je n'est pas encore pris en compte le spectateur par la suite).
 
 * Cela fait, deux fenêtres graphiques se lance avec pour chacune le nom des joueurs ainsi que la couleurs des pions qu'ils peuvent jouer.
@@ -32,8 +34,8 @@ Si le message " make: rien a faire pour "all" " apparait mettez un commentaire q
 
 * Si le serveur n'est pas d'accord avec votre déplacement il vous indique de recommancer. (pour l'instant il est possible de laisser le pion fautif en bouger un autre correctement et ce sera valider par le serveur).
 
-* Pour l'instant la partie ne se termine pas une fois tout les jetons mangé pour un des deux joueurs.
+* Pour l'instant la partie se termine lorsque l'un des joueurs n'a plus de pions.
 
-* Vous pouvez quitter votre fenêtre graphique avec échappe ou la croix, cela arrêtera le serveur mais pas le deuxieme client.
+* Vous pouvez quitter votre fenêtre graphique avec échappe ou la croix, cela arrêtera le serveur et le deuxieme client.
 
 * Si vous le souhaiter vous avez l'historique de vos déplacements personnel sur le terminal associé a votre fenêtre graphique et l'historique total sur le terminal du serveur.

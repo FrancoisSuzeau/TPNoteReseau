@@ -40,6 +40,9 @@ date : 25/10/2020
     #define TAKEOK      0x12
     #define TAKENOTOK   0x13
     #define YOURTURNAT  0x14
+    #define YOULOOSE    0x15
+    #define YOUWIN      0x16
+    #define QUIT        0x17
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -49,6 +52,7 @@ date : 25/10/2020
     /*********************************************************************************************************************/
 
         enum {WHITE, BLACK, EMPTY};
+
         enum {UP, DOWN, LEFT, RIGHT};
 
         enum{PLAYER1, PLAYER2, VIEWER};

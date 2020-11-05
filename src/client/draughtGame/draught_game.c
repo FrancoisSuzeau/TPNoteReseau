@@ -156,11 +156,12 @@ void initialiseBoard(manage_board *manBoardI)
 /************************************************************************************/
 /* function : validateTaken                                                         */
 /************************************************************************************/
-/* Input : manage_board *, SDL_Rect *                                               */
+/* Input : manage_board *, SDL_Rect * x3, manage_player *                           */
 /* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : validate if the shot + 2 case in diagonal is correct or no             */
-/*                                                                                  */
+/* purpose : this function is call by client. validate if the shot + 2 case in      */
+/* diagonale his good or no., then modify the board at the coordonnate of the pawn  */
+/* who was taken and save his coordonnate                                           */
 /************************************************************************************/
 void validateTaken(manage_board *manBoard, SDL_Rect *ancientPos, SDL_Rect *eaten, SDL_Rect *newPos, manage_player *player)
 {
@@ -215,8 +216,8 @@ void validateTaken(manage_board *manBoard, SDL_Rect *ancientPos, SDL_Rect *eaten
 /* Input : manage_board *, SDL_Rect *                                               */
 /* Output : int                                                                     */
 /************************************************************************************/
-/* purpose : validate if the shot is correct or no                                  */
-/*                                                                                  */
+/* purpose : this function is call by client in module sdl.                         */
+/* validate if the move is correct or no                                            */
 /************************************************************************************/
 int validateSelect(manage_board *manBoard, SDL_Rect *position)
 {
@@ -287,8 +288,6 @@ int validateSelect(manage_board *manBoard, SDL_Rect *position)
    
     return bool;
 }
-
-
 
 /************************************************************************************/
 /* function : destroyBoard                                                          */

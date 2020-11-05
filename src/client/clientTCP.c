@@ -25,9 +25,7 @@ int main(int argc, char *argv[])
     player->isConnected = FALSE;
 
     struct sockaddr_in ser_addr;
-	int sk;
-    char buf[MAX] = {""};                                                            
-    int count;
+	int sk;                                                            
     int connect_fd;
     
     bzero((char*) &ser_addr, sizeof(ser_addr));
@@ -108,19 +106,21 @@ int main(int argc, char *argv[])
                     position_selector.y = 0;
                     eaten.x = 0;
                     eaten.y = 0;
-                    waitValidate(sk, player);
+                    continuer = waitValidate(sk, player);
                 }
                 
             } 
         }
         if((player->which_one == PLAYER2) || (player->which_one == VIEWER))
         {
-            confirmTurn(sk, player, my_manBoard);
+            continuer = confirmTurn(sk, player, my_manBoard);
         }
 
         updateMapPawn(screen, my_manBoard);
         SDL_Flip(screen);
     }
+
+    sendQuit(&sk, player);
 
     freeTexture();
 
@@ -131,15 +131,6 @@ int main(int argc, char *argv[])
     SDL_Quit();
 
     free(player);
-
-    buf[0] = '\0';
-    strcat(buf, "quit");
-    if((count = send(sk, buf, sizeof(buf), 0)) == -1)
-    {
-        perror("Client : send data failure : ");
-        exit(EXIT_FAILURE);
-    }
-    puts(">>> Client : End of transmission");
 
     shutdown(sk, SHUT_RDWR);
     close(sk);
